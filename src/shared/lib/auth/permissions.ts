@@ -19,6 +19,7 @@ export type Permission =
   | 'projects:assign'
   | 'milestones:read'
   | 'milestones:write'
+  | 'milestones:assign'
   | 'employees:read'
   | 'employees:write'
   | 'communications:read'
@@ -37,6 +38,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'projects:assign',
     'milestones:read',
     'milestones:write',
+    'milestones:assign',
     'employees:read',
     'employees:write',
     'communications:read',
@@ -51,6 +53,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'projects:assign',
     'milestones:read',
     'milestones:write',
+    'milestones:assign',
     'communications:read',
     'communications:write',
   ],
@@ -60,7 +63,7 @@ const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     'projects:read',
     'projects:write', // Only for assigned projects (enforced by RLS)
     'milestones:read',
-    'milestones:write', // Only for assigned milestones (enforced by RLS)
+    'milestones:write', // Only for assigned milestones (enforced by RLS) - cannot edit name or assignees
     'communications:read',
     'communications:write', // Only for assigned projects (enforced by RLS)
   ],

@@ -1,5 +1,7 @@
 /**
- * Project Detail Page
+ * Project Detail Page with Tabs Layout
+ * 
+ * Tabs: Project Info | Milestones
  */
 
 'use client';
@@ -13,9 +15,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Badge } from '@/shared/components/ui/badge';
 import { Progress } from '@/shared/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 
 import { useProject } from '@/features/projects/ui/hooks/useProjects';
 import { ProjectEditDialog } from '@/features/projects/ui/components/ProjectEditDialog';
+import { TeamMembersSection } from '@/features/project-members/ui/components/TeamMembersSection';
+import { TeamMembersDialog } from '@/features/project-members/ui/components/TeamMembersDialog';
+import { MilestonesTab } from '@/features/milestones/ui/components/MilestonesTab';
+import { canManage } from '@/shared/lib/auth/permissions';
+import { useCurrentUser } from '@/features/auth/ui/hooks/useAuth';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-blue-500',
@@ -32,7 +40,13 @@ interface ProjectDetailPageProps {
 export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const { id } = use(params);
   const { data: project, isLoading, error } = useProject(id);
+  const { data: currentUser } = useCurrentUser();
+  
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [teamDialogOpen, setTeamDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('info');
+
+  const userCanManage = currentUser?.role ? canManage(currentUser.role) : false;
 
   if (error) {
     return (
@@ -54,6 +68,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
             <Skeleton className="h-4 w-32" />
           </div>
         </div>
+        <Skeleton className="h-10 w-64" />
         <div className="grid gap-6 md:grid-cols-2">
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
@@ -78,6 +93,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/projects">
@@ -93,79 +109,112 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
             <p className="text-muted-foreground">Client: {project.client_name}</p>
           </div>
         </div>
-        <Button onClick={() => setEditDialogOpen(true)}>
-          <Pencil className="mr-2 h-4 w-4" />
-          Edit
-        </Button>
+        {userCanManage && (
+          <Button onClick={() => setEditDialogOpen(true)}>
+            <Pencil className="mr-2 h-4 w-4" />
+            Edit
+          </Button>
+        )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Project Details</CardTitle>
-            <CardDescription>Timeline and priority</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <Flag className="h-4 w-4 text-muted-foreground" />
-              <span className="capitalize">Priority: {project.priority}</span>
-            </div>
-            {project.start_date && (
-              <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>Start: {new Date(project.start_date).toLocaleDateString()}</span>
-              </div>
-            )}
-            {project.end_date && (
-              <div className="flex items-center gap-3">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span>Due: {new Date(project.end_date).toLocaleDateString()}</span>
-              </div>
-            )}
-            {project.description && (
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">Description</p>
-                <p>{project.description}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="info">Project Info</TabsTrigger>
+          <TabsTrigger value="milestones">Milestones</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Financials</CardTitle>
-            <CardDescription>Budget and payments</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-3">
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-              <span>Budget: ${project.total_budget.toLocaleString()}</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <DollarSign className="h-4 w-4 text-green-500" />
-              <span>Paid: ${project.amount_paid.toLocaleString()}</span>
-            </div>
-            <div>
-              <div className="flex justify-between text-sm mb-1">
-                <span>Payment Progress</span>
-                <span>{Math.round(paymentProgress)}%</span>
-              </div>
-              <Progress value={paymentProgress} />
-            </div>
-            {project.payment_terms && (
-              <div>
-                <p className="text-sm text-muted-foreground">Terms: {project.payment_terms}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+        {/* Project Info Tab */}
+        <TabsContent value="info" className="space-y-6 mt-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Project Details Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Project Details</CardTitle>
+                <CardDescription>Timeline and priority</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Flag className="h-4 w-4 text-muted-foreground" />
+                  <span className="capitalize">Priority: {project.priority}</span>
+                </div>
+                {project.start_date && (
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>Start: {new Date(project.start_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {project.end_date && (
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-4 w-4 text-muted-foreground" />
+                    <span>Due: {new Date(project.end_date).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {project.description && (
+                  <div>
+                    <p className="text-sm text-muted-foreground mb-1">Description</p>
+                    <p>{project.description}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-      {/* Edit Project Dialog */}
+            {/* Financials Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Financials</CardTitle>
+                <CardDescription>Budget and payments</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <span>Budget: ${project.total_budget.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <DollarSign className="h-4 w-4 text-green-500" />
+                  <span>Paid: ${project.amount_paid.toLocaleString()}</span>
+                </div>
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Payment Progress</span>
+                    <span>{Math.round(paymentProgress)}%</span>
+                  </div>
+                  <Progress value={paymentProgress} />
+                </div>
+                {project.payment_terms && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Terms: {project.payment_terms}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Team Members Section */}
+          <TeamMembersSection
+            projectId={id}
+            canManage={userCanManage}
+            onManageClick={() => setTeamDialogOpen(true)}
+          />
+        </TabsContent>
+
+        {/* Milestones Tab */}
+        <TabsContent value="milestones" className="mt-6">
+          <MilestonesTab projectId={id} canManage={userCanManage} />
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialogs */}
       <ProjectEditDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         project={project}
+      />
+
+      <TeamMembersDialog
+        open={teamDialogOpen}
+        onOpenChange={setTeamDialogOpen}
+        projectId={id}
       />
     </div>
   );
