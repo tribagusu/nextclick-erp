@@ -51,7 +51,7 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="lg:p-6 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back!</p>
@@ -72,7 +72,7 @@ export default function DashboardPage() {
   const { metrics, recentProjects, recentActivity } = data!;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="lg:p-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">Overview of your business metrics</p>

@@ -1,13 +1,14 @@
 /**
  * Milestone Card Component
- * 
- * Individual milestone display with status, dates, and actions
+ *
+ * Individual milestone display with status, dates, and actions.
+ * Shows different action buttons based on user role and assignment status.
  */
 
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Trash2, Clock, Users } from 'lucide-react';
+import { Pencil, Trash2, Clock, Users, ClipboardEdit } from 'lucide-react';
 
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
@@ -26,6 +27,7 @@ import {
 import { useDeleteMilestone } from '../hooks/useMilestones';
 import { useMilestoneEmployees } from '../hooks/useMilestoneEmployees';
 import { MilestoneAssignmentDialog } from './MilestoneAssignmentDialog';
+import { MilestoneFormDialog } from './MilestoneFormDialog';
 import type { ProjectMilestone } from '@/shared/types/database.types';
 
 interface MilestoneCardProps {
@@ -33,6 +35,11 @@ interface MilestoneCardProps {
   projectId: string;
   canManage: boolean;
   onEdit: () => void;
+  /**
+   * Current user's employee ID (if they are linked to an employee record).
+   * Used to check if user is assigned to this milestone.
+   */
+  currentEmployeeId?: string;
 }
 
 const statusConfig: Record<string, { color: string; bgColor: string; label: string }> = {
@@ -49,22 +56,34 @@ const statusDotColors: Record<string, string> = {
   cancelled: 'bg-red-500',
 };
 
-export function MilestoneCard({ milestone, projectId, canManage, onEdit }: MilestoneCardProps) {
+export function MilestoneCard({
+  milestone,
+  projectId,
+  canManage,
+  onEdit,
+  currentEmployeeId,
+}: MilestoneCardProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [progressDialogOpen, setProgressDialogOpen] = useState(false);
   const deleteMilestone = useDeleteMilestone();
   const { data: assigneesData } = useMilestoneEmployees(milestone.id);
 
   const status = statusConfig[milestone.status] || statusConfig.pending;
   const dotColor = statusDotColors[milestone.status] || statusDotColors.pending;
-  const assigneeCount = assigneesData?.employees?.length || 0;
+  const assignees = assigneesData?.employees || [];
+  const assigneeCount = assignees.length;
+
+  // Check if current employee is assigned to this milestone
+  const isAssigned =
+    currentEmployeeId && assignees.some((a) => a.employee_id === currentEmployeeId);
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return null;
-    return new Date(dateStr).toLocaleDateString('en-US', { 
-      month: 'short', 
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
       day: '2-digit',
-      year: 'numeric' 
+      year: 'numeric',
     });
   };
 
@@ -81,8 +100,10 @@ export function MilestoneCard({ milestone, projectId, canManage, onEdit }: Miles
     <>
       <Card className="relative">
         {/* Status indicator dot */}
-        <div className={`absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${dotColor} -ml-1`} />
-        
+        <div
+          className={`absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full ${dotColor} -ml-1`}
+        />
+
         <CardContent className="pt-4 pb-4">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
@@ -111,9 +132,7 @@ export function MilestoneCard({ milestone, projectId, canManage, onEdit }: Miles
                     <Clock className="h-3 w-3" />
                     <span>
                       {formatDate(milestone.due_date)}
-                      {milestone.completion_date && (
-                        <> → {formatDate(milestone.completion_date)}</>
-                      )}
+                      {milestone.completion_date && <> → {formatDate(milestone.completion_date)}</>}
                     </span>
                   </div>
                 )}
@@ -135,30 +154,47 @@ export function MilestoneCard({ milestone, projectId, canManage, onEdit }: Miles
             </div>
 
             {/* Action Buttons */}
-            {canManage && (
-              <div className="flex items-center gap-1 ml-2 shrink-0">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => setAssignDialogOpen(true)} 
-                  className="h-8 w-8"
-                  title="Assign team members"
-                >
-                  <Users className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={onEdit} className="h-8 w-8">
-                  <Pencil className="h-4 w-4" />
-                </Button>
+            <div className="flex items-center gap-1 ml-2 shrink-0">
+              {/* Update Progress button for assigned employees (non-managers) */}
+              {!canManage && isAssigned && (
                 <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setDeleteDialogOpen(true)}
-                  className="h-8 w-8 text-destructive hover:text-destructive"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setProgressDialogOpen(true)}
+                  className="h-8 gap-1"
+                  title="Update milestone progress"
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <ClipboardEdit className="h-4 w-4" />
+                  <span className="hidden sm:inline">Update</span>
                 </Button>
-              </div>
-            )}
+              )}
+
+              {/* Manager actions */}
+              {canManage && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setAssignDialogOpen(true)}
+                    className="h-8 w-8"
+                    title="Assign team members"
+                  >
+                    <Users className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={onEdit} className="h-8 w-8">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setDeleteDialogOpen(true)}
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -172,13 +208,23 @@ export function MilestoneCard({ milestone, projectId, canManage, onEdit }: Miles
         projectId={projectId}
       />
 
+      {/* Progress Update Dialog (Restricted Mode for Employees) */}
+      <MilestoneFormDialog
+        open={progressDialogOpen}
+        onOpenChange={setProgressDialogOpen}
+        projectId={projectId}
+        milestoneId={milestone.id}
+        restrictedMode
+      />
+
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Milestone</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &ldquo;{milestone.milestone}&rdquo;? This action cannot be undone.
+              Are you sure you want to delete &ldquo;{milestone.milestone}&rdquo;? This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -120,3 +120,26 @@ export function useDeleteEmployee() {
     },
   });
 }
+
+/**
+ * Get the current user's employee record (if linked via user_id)
+ */
+async function fetchCurrentEmployee(): Promise<Employee | null> {
+  const response = await fetch('/api/employees/me');
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    throw new Error('Failed to fetch current employee');
+  }
+  const json = await response.json();
+  return json.data;
+}
+
+export function useCurrentEmployee() {
+  return useQuery({
+    queryKey: [...employeeKeys.all, 'me'] as const,
+    queryFn: fetchCurrentEmployee,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: false,
+  });
+}
+

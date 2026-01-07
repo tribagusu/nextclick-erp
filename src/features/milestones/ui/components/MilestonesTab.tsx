@@ -24,6 +24,7 @@ import { useMilestones } from '../hooks/useMilestones';
 import { MilestoneCard } from './MilestoneCard';
 import { MilestoneProgress } from './MilestoneProgress';
 import { MilestoneFormDialog } from './MilestoneFormDialog';
+import { useCurrentEmployee } from '@/features/employees/ui/hooks/useEmployees';
 import type { MilestoneStatus } from '@/shared/types/database.types';
 
 interface MilestonesTabProps {
@@ -35,6 +36,9 @@ export function MilestonesTab({ projectId, canManage }: MilestonesTabProps) {
   const [statusFilter, setStatusFilter] = useState<MilestoneStatus | 'all'>('all');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<string | null>(null);
+  
+  // Get current employee ID for assignment checks
+  const { data: currentEmployee } = useCurrentEmployee();
 
   const { data, isLoading } = useMilestones({
     projectId,
@@ -136,6 +140,7 @@ export function MilestonesTab({ projectId, canManage }: MilestonesTabProps) {
                 projectId={projectId}
                 canManage={canManage}
                 onEdit={() => handleEdit(milestone.id)}
+                currentEmployeeId={currentEmployee?.id}
               />
             ))}
           </div>

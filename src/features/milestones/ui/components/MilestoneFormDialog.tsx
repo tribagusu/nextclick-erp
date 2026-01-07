@@ -1,7 +1,8 @@
 /**
  * Milestone Form Dialog Component
- * 
- * Dialog for creating and editing milestones
+ *
+ * Dialog for creating and editing milestones.
+ * Supports restricted mode for employees where only status, remarks, and completion_date can be edited.
  */
 
 'use client';
@@ -9,6 +10,7 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { format, parseISO } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 
 import {
@@ -31,15 +33,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import { DatePicker } from '@/shared/components/ui/date-picker';
 
 import { useMilestone, useCreateMilestone, useUpdateMilestone } from '../hooks/useMilestones';
-import { milestoneFormSchema, milestoneStatusOptions, type MilestoneFormData, transformMilestoneInput } from '../../domain/schemas';
+import {
+  milestoneFormSchema,
+  milestoneStatusOptions,
+  type MilestoneFormData,
+  transformMilestoneInput,
+} from '../../domain/schemas';
 
 interface MilestoneFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   projectId: string;
   milestoneId: string | null;
+  /**
+   * When true, only status, remarks, and completion_date can be edited.
+   * Used for employees who are assigned to the milestone.
+   */
+  restrictedMode?: boolean;
 }
 
 export function MilestoneFormDialog({
@@ -47,6 +60,7 @@ export function MilestoneFormDialog({
   onOpenChange,
   projectId,
   milestoneId,
+  restrictedMode = false,
 }: MilestoneFormDialogProps) {
   const isEditing = !!milestoneId;
 
@@ -75,6 +89,8 @@ export function MilestoneFormDialog({
   });
 
   const currentStatus = watch('status');
+  const currentDueDate = watch('due_date');
+  const currentCompletionDate = watch('completion_date');
   const error = createMilestone.error || updateMilestone.error;
 
   // Populate form when editing
@@ -104,10 +120,20 @@ export function MilestoneFormDialog({
 
   const handleFormSubmit = async (data: MilestoneFormData) => {
     const transformed = transformMilestoneInput(data);
-    
+
     try {
       if (isEditing && milestoneId) {
-        await updateMilestone.mutateAsync({ id: milestoneId, ...transformed });
+        // In restricted mode, only send the fields employees can edit
+        if (restrictedMode) {
+          await updateMilestone.mutateAsync({
+            id: milestoneId,
+            status: transformed.status,
+            completion_date: transformed.completion_date,
+            remarks: transformed.remarks,
+          });
+        } else {
+          await updateMilestone.mutateAsync({ id: milestoneId, ...transformed });
+        }
       } else {
         await createMilestone.mutateAsync(transformed);
       }
@@ -119,18 +145,41 @@ export function MilestoneFormDialog({
 
   const isPending = createMilestone.isPending || updateMilestone.isPending;
 
+  // Convert date string to Date object for DatePicker
+  const parseDateString = (dateStr: string | undefined): Date | null => {
+    if (!dateStr) return null;
+    try {
+      return parseISO(dateStr);
+    } catch {
+      return null;
+    }
+  };
+
+  // Convert Date object to date string for form
+  const formatDateForForm = (date: Date | undefined): string => {
+    if (!date) return '';
+    return format(date, 'yyyy-MM-dd');
+  };
+
+  // Determine dialog title/description based on mode
+  const dialogTitle = restrictedMode
+    ? 'Update Milestone Progress'
+    : isEditing
+      ? 'Edit Milestone'
+      : 'Add New Milestone';
+
+  const dialogDescription = restrictedMode
+    ? 'Update status, completion date, and remarks for this milestone'
+    : isEditing
+      ? 'Update milestone details'
+      : 'Create a new milestone to track project progress';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? 'Edit Milestone' : 'Add New Milestone'}
-          </DialogTitle>
-          <DialogDescription>
-            {isEditing
-              ? 'Update milestone details'
-              : 'Create a new milestone to track project progress'}
-          </DialogDescription>
+          <DialogTitle>{dialogTitle}</DialogTitle>
+          <DialogDescription>{dialogDescription}</DialogDescription>
         </DialogHeader>
 
         {isEditing && loadingMilestone ? (
@@ -147,55 +196,71 @@ export function MilestoneFormDialog({
               </Alert>
             )}
 
-            {/* Milestone Name */}
-            <div className="space-y-2">
-              <Label htmlFor="milestone">
-                Milestone Name <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="milestone"
-                placeholder="e.g., Project Planning, Backend Development"
-                {...register('milestone')}
-              />
-              {errors.milestone && (
-                <p className="text-sm text-destructive">{errors.milestone.message}</p>
-              )}
-            </div>
-
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">
-                Description <span className="text-destructive">*</span>
-              </Label>
-              <Textarea
-                id="description"
-                placeholder="Describe what needs to be accomplished in this milestone"
-                rows={3}
-                {...register('description')}
-              />
-              {errors.description && (
-                <p className="text-sm text-destructive">{errors.description.message}</p>
-              )}
-            </div>
-
-            {/* Dates */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Milestone Name - disabled in restricted mode */}
+            {!restrictedMode && (
               <div className="space-y-2">
-                <Label htmlFor="due_date">
-                  Target Finish Date <span className="text-destructive">*</span>
+                <Label htmlFor="milestone">
+                  Milestone Name <span className="text-destructive">*</span>
                 </Label>
-                <Input id="due_date" type="date" {...register('due_date')} />
-                {errors.due_date && (
-                  <p className="text-sm text-destructive">{errors.due_date.message}</p>
+                <Input
+                  id="milestone"
+                  placeholder="e.g., Project Planning, Backend Development"
+                  {...register('milestone')}
+                />
+                {errors.milestone && (
+                  <p className="text-sm text-destructive">{errors.milestone.message}</p>
                 )}
               </div>
+            )}
+
+            {/* Description - disabled in restricted mode */}
+            {!restrictedMode && (
               <div className="space-y-2">
-                <Label htmlFor="completion_date">Completion Date</Label>
-                <Input id="completion_date" type="date" {...register('completion_date')} />
+                <Label htmlFor="description">
+                  Description <span className="text-destructive">*</span>
+                </Label>
+                <Textarea
+                  id="description"
+                  placeholder="Describe what needs to be accomplished in this milestone"
+                  rows={3}
+                  {...register('description')}
+                />
+                {errors.description && (
+                  <p className="text-sm text-destructive">{errors.description.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Dates - due_date disabled in restricted mode */}
+            <div className="grid grid-cols-2 gap-4">
+              {!restrictedMode && (
+                <div className="space-y-2">
+                  <Label>
+                    Target Finish Date <span className="text-destructive">*</span>
+                  </Label>
+                  <DatePicker
+                    value={parseDateString(currentDueDate)}
+                    onChange={(date) => setValue('due_date', formatDateForForm(date))}
+                    placeholder="Select due date"
+                  />
+                  {errors.due_date && (
+                    <p className="text-sm text-destructive">{errors.due_date.message}</p>
+                  )}
+                </div>
+              )}
+              <div className={restrictedMode ? 'col-span-2' : ''}>
+                <div className="space-y-2">
+                  <Label>Completion Date</Label>
+                  <DatePicker
+                    value={parseDateString(currentCompletionDate)}
+                    onChange={(date) => setValue('completion_date', formatDateForForm(date))}
+                    placeholder="Select completion date"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Status */}
+            {/* Status - always editable */}
             <div className="space-y-2">
               <Label>Status</Label>
               <Select
@@ -215,7 +280,7 @@ export function MilestoneFormDialog({
               </Select>
             </div>
 
-            {/* Remarks */}
+            {/* Remarks - always editable */}
             <div className="space-y-2">
               <Label htmlFor="remarks">Remarks (Optional)</Label>
               <Textarea

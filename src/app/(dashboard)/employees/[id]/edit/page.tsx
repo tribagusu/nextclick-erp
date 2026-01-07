@@ -48,7 +48,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="lg:p-6 space-y-6">
         <div className="flex items-center gap-4">
           <Skeleton className="h-10 w-10" />
           <div className="space-y-2">
@@ -72,7 +72,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="lg:p-6 space-y-6">
       <div className="flex items-center gap-4">
         <Link href={`/employees/${id}`}>
           <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>

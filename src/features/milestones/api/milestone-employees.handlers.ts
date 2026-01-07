@@ -64,13 +64,13 @@ export async function handleAddMilestoneEmployee(
     .from('project_milestones')
     .select('id, project_id')
     .eq('id', milestoneId)
-    .single();
+    .single<{ id: string; project_id: string }>();
 
   if (milestoneError || !milestoneData) {
     return NextResponse.json({ error: 'Milestone not found' }, { status: 404 });
   }
 
-  const projectId = milestoneData.project_id as string;
+  const projectId = milestoneData.project_id;
 
   // Verify employee is a project team member
   const { data: projectMember } = await supabase
@@ -88,7 +88,8 @@ export async function handleAddMilestoneEmployee(
   }
 
   // Add to milestone
-  const { data, error } = await supabase
+  // Cast to bypass Supabase type inference issues (same pattern as project-member.repository)
+  const insertResult = await (supabase as unknown as { from: (table: string) => { insert: (data: { milestone_id: string; employee_id: string }) => { select: (query: string) => { single: () => Promise<{ data: unknown; error: { code?: string; message: string } | null }> } } } })
     .from('milestone_employees')
     .insert({
       milestone_id: milestoneId,
@@ -106,6 +107,8 @@ export async function handleAddMilestoneEmployee(
       )
     `)
     .single();
+  
+  const { data, error } = insertResult;
 
   if (error) {
     if (error.code === '23505') {

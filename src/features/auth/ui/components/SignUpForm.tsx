@@ -185,7 +185,7 @@ export function SignUpForm() {
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col space-y-4">
+        <CardFooter className="flex flex-col space-y-4 py-4">
           <Button
             type="submit"
             className="w-full"

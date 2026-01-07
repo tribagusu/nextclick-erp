@@ -29,7 +29,7 @@ export default function NewEmployeePage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="lg:p-6 space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/employees">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>

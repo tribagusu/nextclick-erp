@@ -42,7 +42,7 @@ export default function MilestoneDetailPage({ params }: MilestoneDetailPageProps
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="lg:p-6 space-y-6">
         <div className="flex items-center gap-4">
           <Skeleton className="h-10 w-10" />
           <div className="space-y-2">
@@ -69,7 +69,7 @@ export default function MilestoneDetailPage({ params }: MilestoneDetailPageProps
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="lg:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/milestones">
