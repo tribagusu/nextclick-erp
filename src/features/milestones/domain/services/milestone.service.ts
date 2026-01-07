@@ -46,12 +46,23 @@ export class MilestoneService {
     }
 
     try {
-      const data = transformMilestoneInput({
-        project_id: result.data.project_id ?? '',
-        milestone: result.data.milestone ?? '',
-        ...result.data,
-      });
-      const milestone = await this.repository.update(id, data as Partial<ProjectMilestone>);
+      // Build update data, only including fields that are actually provided
+      // This handles restricted mode updates where only status/remarks/completion_date are sent
+      const updateData: Record<string, unknown> = {};
+      
+      if (result.data.status) updateData.status = result.data.status;
+      if (result.data.remarks !== undefined) updateData.remarks = result.data.remarks || null;
+      if (result.data.completion_date !== undefined) {
+        updateData.completion_date = result.data.completion_date || null;
+      }
+      
+      // Only include these fields if they're actually provided (non-empty)
+      if (result.data.project_id) updateData.project_id = result.data.project_id;
+      if (result.data.milestone) updateData.milestone = result.data.milestone;
+      if (result.data.description !== undefined) updateData.description = result.data.description || null;
+      if (result.data.due_date) updateData.due_date = result.data.due_date;
+      
+      const milestone = await this.repository.update(id, updateData as Partial<ProjectMilestone>);
       return { success: true, milestone };
     } catch (error) {
       console.error('Update milestone error:', error);
