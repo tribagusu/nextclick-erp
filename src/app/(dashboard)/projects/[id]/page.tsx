@@ -1,0 +1,162 @@
+/**
+ * Project Detail Page
+ */
+
+'use client';
+
+import { use } from 'react';
+import Link from 'next/link';
+import { ArrowLeft, Pencil, Calendar, DollarSign, Flag, Clock } from 'lucide-react';
+
+import { Button } from '@/shared/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
+import { Skeleton } from '@/shared/components/ui/skeleton';
+import { Badge } from '@/shared/components/ui/badge';
+import { Progress } from '@/shared/components/ui/progress';
+
+import { useProject } from '@/features/projects/ui/hooks/useProjects';
+
+const statusColors: Record<string, string> = {
+  draft: 'bg-blue-500',
+  active: 'bg-green-500',
+  on_hold: 'bg-yellow-500',
+  completed: 'bg-purple-500',
+  cancelled: 'bg-red-500',
+};
+
+interface ProjectDetailPageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
+  const { id } = use(params);
+  const { data: project, isLoading, error } = useProject(id);
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="rounded-md border border-destructive p-4">
+          <p className="text-destructive">Failed to load project</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-32" />
+          </div>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="p-6">
+        <div className="rounded-md border p-4">
+          <p className="text-muted-foreground">Project not found</p>
+        </div>
+      </div>
+    );
+  }
+
+  const paymentProgress = project.total_budget > 0 
+    ? Math.min(100, (project.amount_paid / project.total_budget) * 100)
+    : 0;
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/projects">
+            <Button variant="ghost" size="icon"><ArrowLeft className="h-4 w-4" /></Button>
+          </Link>
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">{project.project_name}</h1>
+              <Badge className={`${statusColors[project.status]} text-white`}>
+                {project.status.replace('_', ' ')}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground">Client: {project.client_name}</p>
+          </div>
+        </div>
+        <Link href={`/projects/${id}/edit`}>
+          <Button><Pencil className="mr-2 h-4 w-4" />Edit</Button>
+        </Link>
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Project Details</CardTitle>
+            <CardDescription>Timeline and priority</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Flag className="h-4 w-4 text-muted-foreground" />
+              <span className="capitalize">Priority: {project.priority}</span>
+            </div>
+            {project.start_date && (
+              <div className="flex items-center gap-3">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span>Start: {new Date(project.start_date).toLocaleDateString()}</span>
+              </div>
+            )}
+            {project.end_date && (
+              <div className="flex items-center gap-3">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span>Due: {new Date(project.end_date).toLocaleDateString()}</span>
+              </div>
+            )}
+            {project.description && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Description</p>
+                <p>{project.description}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Financials</CardTitle>
+            <CardDescription>Budget and payments</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-3">
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <span>Budget: ${project.total_budget.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <DollarSign className="h-4 w-4 text-green-500" />
+              <span>Paid: ${project.amount_paid.toLocaleString()}</span>
+            </div>
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span>Payment Progress</span>
+                <span>{Math.round(paymentProgress)}%</span>
+              </div>
+              <Progress value={paymentProgress} />
+            </div>
+            {project.payment_terms && (
+              <div>
+                <p className="text-sm text-muted-foreground">Terms: {project.payment_terms}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
