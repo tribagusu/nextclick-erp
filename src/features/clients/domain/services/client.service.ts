@@ -8,7 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Client } from '@/shared/types/database.types';
 import { ClientRepository } from './client.repository';
 import type { ClientListParams, ClientListResponse, ClientCreateInput, ClientUpdateInput } from '../types';
-import { clientSchema, transformClientInput } from '../schemas';
+import { clientApiSchema } from '../schemas';
 
 export class ClientService {
   private repository: ClientRepository;
@@ -42,19 +42,24 @@ export class ClientService {
    * Create a new client
    */
   async createClient(input: ClientCreateInput): Promise<{ success: boolean; client?: Client; error?: string }> {
-    // Validate input
-    const result = clientSchema.safeParse(input);
+    // Validate input (API schema accepts null values)
+    const result = clientApiSchema.safeParse(input);
     if (!result.success) {
       return { success: false, error: result.error.issues[0].message };
     }
 
     try {
-      const data = transformClientInput(result.data);
-      const client = await this.repository.create(data);
+      // result.data is already validated, pass directly to repository
+      const client = await this.repository.create(result.data as Partial<Client>);
       return { success: true, client };
     } catch (error) {
       console.error('Create client error:', error);
-      return { success: false, error: 'Failed to create client' };
+      // Extract meaningful error message from database errors
+      const err = error as { message?: string; code?: string; details?: string };
+      if (err.code === '42501') {
+        return { success: false, error: 'Permission denied. You do not have access to create clients.' };
+      }
+      return { success: false, error: err.message || 'Failed to create client' };
     }
   }
 
@@ -62,8 +67,8 @@ export class ClientService {
    * Update an existing client
    */
   async updateClient(id: string, input: ClientUpdateInput): Promise<{ success: boolean; client?: Client; error?: string }> {
-    // Validate input
-    const result = clientSchema.partial().safeParse(input);
+    // Validate input (API schema accepts null values)
+    const result = clientApiSchema.partial().safeParse(input);
     if (!result.success) {
       return { success: false, error: result.error.issues[0].message };
     }

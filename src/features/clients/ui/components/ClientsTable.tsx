@@ -6,7 +6,7 @@
 
 'use client';
 
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MoreHorizontal, Pencil, Trash2, Eye, Search, Plus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -41,16 +41,19 @@ import {
 import type { Client } from '@/shared/types/database.types';
 import { useClients, useDeleteClient } from '../hooks/useClients';
 import { ClientFormDialog } from './ClientFormDialog';
+import { ClientEditDialog } from './ClientEditDialog';
 
 interface ClientsTableProps {
   initialSearch?: string;
 }
 
 export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
+  const router = useRouter();
   const [search, setSearch] = useState(initialSearch);
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editClient, setEditClient] = useState<Client | null>(null);
 
   const { data, isLoading, error } = useClients({
     page,
@@ -67,6 +70,10 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
       await deleteMutation.mutateAsync(deleteId);
       setDeleteId(null);
     }
+  };
+
+  const handleRowClick = (clientId: string) => {
+    router.push(`/clients/${clientId}`);
   };
 
   if (error) {
@@ -132,34 +139,43 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
               </TableRow>
             ) : (
               data?.clients.map((client: Client) => (
-                <TableRow key={client.id}>
+                <TableRow 
+                  key={client.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleRowClick(client.id)}
+                >
                   <TableCell className="font-medium">{client.name}</TableCell>
                   <TableCell>{client.email || '—'}</TableCell>
                   <TableCell>{client.phone || '—'}</TableCell>
                   <TableCell>{client.company_name || '—'}</TableCell>
                   <TableCell>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="icon">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <Link href={`/clients/${client.id}`}>
-                          <DropdownMenuItem>
-                            <Eye className="mr-2 h-4 w-4" />
-                            View
-                          </DropdownMenuItem>
-                        </Link>
-                        <Link href={`/clients/${client.id}/edit`}>
-                          <DropdownMenuItem>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                        </Link>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleRowClick(client.id);
+                        }}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          setEditClient(client);
+                        }}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-destructive"
-                          onClick={() => setDeleteId(client.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteId(client.id);
+                          }}
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           Delete
@@ -227,6 +243,13 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
       <ClientFormDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
+      />
+
+      {/* Edit Client Dialog */}
+      <ClientEditDialog
+        open={!!editClient}
+        onOpenChange={(open) => !open && setEditClient(null)}
+        client={editClient}
       />
     </div>
   );

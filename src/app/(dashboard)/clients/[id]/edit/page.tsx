@@ -29,11 +29,11 @@ export default function EditClientPage({ params }: EditClientPageProps) {
 
   const handleSubmit = async (data: {
     name: string;
-    email: string | null;
-    phone: string | null;
-    company_name: string | null;
-    address: string | null;
-    notes: string | null;
+    email?: string | null;
+    phone?: string | null;
+    company_name?: string | null;
+    address?: string | null;
+    notes?: string | null;
   }) => {
     setError(null);
     try {
