@@ -33,6 +33,7 @@ export function SignInForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const signInMutation = useSignIn();
 
   const {
@@ -57,10 +58,15 @@ export function SignInForm() {
       return;
     }
 
+    // Show redirecting state
+    setIsRedirecting(true);
+    
     // Redirect to dashboard on success
     router.push('/');
     router.refresh();
   };
+
+  const isLoading = isSubmitting || signInMutation.isPending;
 
   return (
     <Card className="w-full max-w-md">
@@ -86,6 +92,7 @@ export function SignInForm() {
               type="email"
               placeholder="name@example.com"
               autoComplete="email"
+              disabled={isRedirecting}
               {...register('email')}
             />
             {errors.email && (
@@ -109,6 +116,7 @@ export function SignInForm() {
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 className="pr-10"
+                disabled={isRedirecting}
                 {...register('password')}
               />
               <Button
@@ -117,6 +125,7 @@ export function SignInForm() {
                 size="sm"
                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                 onClick={() => setShowPassword(!showPassword)}
+                disabled={isRedirecting}
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4 text-muted-foreground" />
@@ -135,12 +144,21 @@ export function SignInForm() {
           <Button
             type="submit"
             className="w-full"
-            disabled={isSubmitting || signInMutation.isPending}
+            disabled={isLoading || isRedirecting}
           >
-            {(isSubmitting || signInMutation.isPending) && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {isRedirecting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Redirecting to dashboard...
+              </>
+            ) : isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              'Sign In'
             )}
-            Sign In
           </Button>
 
           <p className="text-sm text-muted-foreground text-center">

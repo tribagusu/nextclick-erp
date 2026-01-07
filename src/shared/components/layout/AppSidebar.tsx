@@ -12,6 +12,8 @@ import {
   Settings,
   LogOut,
   Building2,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 import {
@@ -38,6 +40,7 @@ import {
 
 import type { UserRole } from '@/shared/types/database.types';
 import { hasPermission, type Permission } from '@/shared/lib/auth/permissions';
+import { useTheme } from 'next-themes';
 
 // =============================================================================
 // TYPES
@@ -81,6 +84,7 @@ const adminNavItems: NavItem[] = [
 
 export function AppSidebar({ user, onLogout }: AppSidebarProps) {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
   const userRole = user?.role ?? 'viewer';
 
   const isActive = (href: string) => {
@@ -111,7 +115,7 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
                   <Building2 className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">NextClick ERP</span>
+                  <span className="truncate font-semibold">Nextclick ERP</span>
                   <span className="truncate text-xs capitalize">{userRole}</span>
                 </div>
               </Link>
@@ -193,11 +197,19 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
                 align="end"
                 sideOffset={4}
               >
-                <DropdownMenuItem asChild>
+                              <DropdownMenuItem asChild>
                   <Link href="/settings">
                     <Settings className="mr-2 size-4" />
                     Settings
                   </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                  {theme === 'dark' ? (
+                    <Sun className="mr-2 size-4" />
+                  ) : (
+                    <Moon className="mr-2 size-4" />
+                  )}
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onLogout}>

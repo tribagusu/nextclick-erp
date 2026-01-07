@@ -7,7 +7,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MoreHorizontal, Pencil, Trash2, Eye, Search } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2, Eye, Search, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 import { Button } from '@/shared/components/ui/button';
@@ -40,6 +40,7 @@ import {
 
 import type { Client } from '@/shared/types/database.types';
 import { useClients, useDeleteClient } from '../hooks/useClients';
+import { ClientFormDialog } from './ClientFormDialog';
 
 interface ClientsTableProps {
   initialSearch?: string;
@@ -49,6 +50,7 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
   const [search, setSearch] = useState(initialSearch);
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const { data, isLoading, error } = useClients({
     page,
@@ -93,9 +95,10 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
             className="pl-9"
           />
         </div>
-        <Link href="/clients/new">
-          <Button>Add Client</Button>
-        </Link>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add Client
+        </Button>
       </div>
 
       {/* Table */}
@@ -219,6 +222,12 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Create Client Dialog */}
+      <ClientFormDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
     </div>
   );
 }
