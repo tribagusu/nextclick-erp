@@ -38,7 +38,14 @@ export function MilestonesTab({ projectId, canManage }: MilestonesTabProps) {
   const [editingMilestone, setEditingMilestone] = useState<string | null>(null);
   
   // Get current employee ID for assignment checks
-  const { data: currentEmployee } = useCurrentEmployee();
+  const { data: currentEmployee, error: employeeError, isLoading: employeeLoading } = useCurrentEmployee();
+  
+  // DEBUG: Log current employee data
+  console.log('[MilestonesTab] useCurrentEmployee:', {
+    currentEmployee,
+    employeeError,
+    employeeLoading,
+  });
 
   const { data, isLoading } = useMilestones({
     projectId,
