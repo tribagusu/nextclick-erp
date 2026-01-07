@@ -14,8 +14,6 @@ export async function GET() {
   // Get current user
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
-  console.log('[/api/employees/me] Auth result:', { userId: user?.id, authError });
-  
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -27,12 +25,6 @@ export async function GET() {
     .eq('user_id', user.id)
     .is('deleted_at', null)
     .single();
-
-  console.log('[/api/employees/me] Employee query:', { 
-    userId: user.id, 
-    employee: employee?.id, 
-    error: error?.message 
-  });
 
   if (error) {
     if (error.code === 'PGRST116') { // No rows found

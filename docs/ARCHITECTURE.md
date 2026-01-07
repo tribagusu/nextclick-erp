@@ -99,7 +99,7 @@ Next.js 16 (App Router + Turbopack)
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                 │
 │  │   Tables    │  │     RLS     │  │  Triggers   │                 │
 │  │  (clients,  │  │  Policies   │  │ (user sync) │                 │
-│  │  projects)  │  │ (per-user)  │  │             │                 │
+│  │  projects)  │  │ (per-role)  │  │             │                 │
 │  └─────────────┘  └─────────────┘  └─────────────┘                 │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -120,6 +120,7 @@ nextclick-erp/
 │   │   │   ├── milestones/           # /milestones/*
 │   │   │   └── page.tsx              # Dashboard home
 │   │   ├── api/                      # API route delegates
+│   │   │   ├── auth/                 # Auth endpoints
 │   │   │   ├── clients/              # Client CRUD
 │   │   │   ├── projects/             # Project CRUD
 │   │   │   ├── communications/       # Communication CRUD
@@ -132,6 +133,7 @@ nextclick-erp/
 │   │   ├── auth/                     # Authentication
 │   │   ├── clients/                  # Client management
 │   │   ├── projects/                 # Project management
+│   │   ├── project-members/          # Project team assignments
 │   │   ├── communications/           # Communication logs
 │   │   ├── employees/                # Employee management
 │   │   ├── milestones/               # Milestone tracking
@@ -143,14 +145,23 @@ nextclick-erp/
 │       │   └── layout/               # Layout components
 │       ├── lib/                      # Utilities
 │       │   ├── supabase/             # Database clients
+│       │   ├── auth/                 # RBAC permissions
+│       │   ├── api/                  # API utilities
 │       │   └── utils.ts              # Helpers (cn, etc.)
 │       ├── providers/                # React providers
 │       └── types/                    # Global types
 │
 ├── supabase/
 │   └── migrations/                   # Database migrations
+│       ├── 001_create_enums.sql      # Enum types
+│       ├── 002_create_tables.sql     # Table definitions
+│       ├── 003_create_rls_policies.sql  # RLS policies
+│       └── 004_create_user_trigger.sql  # Auth trigger
 │
 └── docs/                             # Documentation
+    ├── ARCHITECTURE.md               # This file
+    ├── features/                     # Feature documentation
+    └── onboarding/                   # Developer onboarding
 ```
 
 ---
@@ -162,42 +173,41 @@ nextclick-erp/
 Each feature follows a **standardized vertical slice** pattern:
 
 ```
-features/clients/
+features/[feature]/
 ├── api/
-│   └── handlers.ts              # HTTP request handlers
+│   ├── handlers.ts              # HTTP request handlers
+│   └── [specialized].handlers.ts # Sub-resource handlers
 ├── domain/
 │   ├── schemas.ts               # Zod validation (form + API)
 │   ├── types.ts                 # TypeScript interfaces
 │   ├── services/
-│   │   ├── client.service.ts    # Business logic
-│   │   └── client.repository.ts # Database queries (extends BaseRepository)
+│   │   ├── [feature].service.ts    # Business logic
+│   │   └── [feature].repository.ts # Database queries
 │   └── __tests__/
 │       └── schemas.test.ts      # Schema tests
-├── ui/
-│   ├── components/
-│   │   ├── ClientsTable.tsx     # Orchestrator component
-│   │   ├── ClientsToolbar.tsx   # Search + filters + add button
-│   │   ├── ClientsDataTable.tsx # Table display
-│   │   ├── ClientsPagination.tsx
-│   │   ├── ClientFormDialog.tsx  # Create dialog
-│   │   ├── ClientEditDialog.tsx  # Edit dialog
-│   │   └── ClientDeleteDialog.tsx
-│   └── hooks/
-│       └── useClients.ts        # TanStack Query hooks
-└── README.md                    # Feature documentation
+└── ui/
+    ├── components/
+    │   ├── [Feature]Table.tsx   # Orchestrator component
+    │   ├── [Feature]Toolbar.tsx # Search + filters + add button
+    │   ├── [Feature]DataTable.tsx # Table display
+    │   ├── [Feature]FormDialog.tsx  # Create/edit dialog
+    │   └── [Feature]DeleteDialog.tsx
+    └── hooks/
+        └── use[Feature]s.ts     # TanStack Query hooks
 ```
 
 ### Current Features
 
-| Feature | Status | Description |
-|---------|--------|-------------|
-| `auth` | ✅ Complete | Supabase Auth, user sync trigger, is_active status |
-| `clients` | ✅ Complete | CRUD, dialog forms, clickable rows |
-| `projects` | ✅ Complete | CRUD, dialog forms (simplified create + full edit) |
-| `communications` | ✅ Complete | CRUD, dialog forms, mode filter |
-| `employees` | ✅ Complete | CRUD, full-page forms |
-| `milestones` | ✅ Complete | CRUD, full-page forms |
-| `dashboard` | ✅ Complete | Metrics & analytics |
+| Feature | Description | Key Files |
+|---------|-------------|-----------|
+| `auth` | Supabase Auth, user sync trigger, RBAC | `useAuth.ts`, `permissions.ts` |
+| `clients` | Client management with CRUD | `ClientsTable.tsx`, `ClientFormDialog.tsx` |
+| `projects` | Project lifecycle with team | `ProjectEditDialog.tsx`, `TeamMembersSection.tsx` |
+| `project-members` | Team assignment for projects | `TeamMembersDialog.tsx` |
+| `employees` | Employee management | `EmployeesTable.tsx` |
+| `milestones` | Milestone tracking with assignments | `MilestonesTab.tsx`, `MilestoneAssignmentDialog.tsx` |
+| `communications` | Communication logs | `CommunicationsTable.tsx` |
+| `dashboard` | Metrics & analytics | `DashboardMetrics.tsx` |
 
 ### Import Rules
 
@@ -221,13 +231,13 @@ import { ClientCard } from "@/features/clients/..."; // Never!
 
 ### Clean Orchestrator Pattern
 
-Table pages follow the **Clean Orchestrator** pattern where the main table component manages state and delegates rendering:
+Table pages follow the **Clean Orchestrator** pattern:
 
 ```
 ┌─────────────────────────────────────────────┐
-│         ClientsTable (Orchestrator)         │
+│         [Feature]Table (Orchestrator)       │
 │  • Manages state (search, page, dialogs)    │
-│  • Fetches data via useClients()            │
+│  • Fetches data via use[Feature]s()         │
 │  • Handles events                           │
 └─────────────────────────────────────────────┘
          │           │           │
@@ -243,28 +253,25 @@ Table pages follow the **Clean Orchestrator** pattern where the main table compo
    └──────────────────────────────────────┘
 ```
 
-### Dialog-Based Forms (Bifurcated Strategy)
+### Dialog-Based Forms
 
-Complex forms use the **Bifurcated Dialog** strategy:
+Forms use the **Dialog-based** approach for context preservation:
 
-| Dialog Type | Fields | Use Case |
-|-------------|--------|----------|
-| **FormDialog** (Create) | 4-5 essential fields | Quick creation |
-| **EditDialog** (Edit) | All fields | Full editing |
+| Dialog Type | Purpose | Example |
+|-------------|---------|---------|
+| **FormDialog** | Create new items | `ProjectFormDialog` - simplified fields |
+| **EditDialog** | Edit existing items | `ProjectEditDialog` - all fields |
+| **AssignmentDialog** | Manage relationships | `MilestoneAssignmentDialog` |
 
-Example (Projects):
-- `ProjectFormDialog`: Name, Client, Status, Priority
-- `ProjectEditDialog`: All 10 fields including dates, budget, etc.
+### Restricted Edit Mode
 
-### Clickable Table Rows
+Employees can edit milestones assigned to them with restricted fields:
 
-All data tables support clickable rows for navigation:
-
-```tsx
-<TableRow 
-  className="cursor-pointer hover:bg-muted/50"
-  onClick={() => router.push(`/clients/${client.id}`)}
->
+```typescript
+// restrictedMode prop hides certain fields
+<MilestoneFormDialog
+  restrictedMode={true}  // Only: status, remarks, completion_date
+/>
 ```
 
 ---
@@ -273,97 +280,90 @@ All data tables support clickable rows for navigation:
 
 ### Schema Validation Strategy
 
-Each feature has **two schemas** for different contexts:
+Each feature has a **single schema** that transforms form input to API format:
 
 ```typescript
-// Form schema (client-side, string inputs)
+// Zod schema with form validation
 export const clientFormSchema = z.object({
   name: z.string().min(1, "Required"),
-  email: z.string().email().optional(),
+  email: z.string().email().optional().or(z.literal("")),
 });
 
-// API schema (server-side, accepts null)
-export const clientApiSchema = z.object({
-  name: z.string().min(1, "Required"),
-  email: z.string().nullable().optional(),
-});
+// Transform function to convert empty strings to null
+export function transformClientInput(data: ClientFormData) {
+  return {
+    ...data,
+    email: data.email || null,
+    phone: data.phone || null,
+  };
+}
 ```
 
-### Read Operation
+### API Request Flow
 
 ```
-Browser                    API Route              Service
-   │                          │                      │
-   │  GET /api/clients        │                      │
-   ├─────────────────────────►│                      │
-   │                          │  getClients()        │
-   │                          ├─────────────────────►│
-   │                          │                      │
-   │                          │    ┌─────────────────┴─────┐
-   │                          │    │ Repository.findAll()  │
-   │                          │    │ → Supabase query      │
-   │                          │    └─────────────────┬─────┘
-   │                          │◄─────────────────────┘
-   │  { data, total }         │
-   │◄─────────────────────────┤
-```
-
-### Write Operation
-
-```
-1. Client sends request with JSON body
-2. API handler delegates to service
-3. Service validates with API schema (Zod)
-4. Repository executes Supabase insert/update
-5. Handler returns JSON response
+Browser → API Route (delegate) → Handler → Service → Repository → Supabase
+           │                        │           │
+           └── Auth check           └── Validate └── RLS applied
 ```
 
 ---
 
 ## Authentication & Security
 
-### Three-Layer Security Model
+### Four-Tier Security Model
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Layer 1: DATABASE (Row Level Security)                         │
-│  • RLS policies on all tables                                   │
-│  • auth.uid() enforcement at DB level                           │
-│  • Soft delete (deleted_at) filtering                           │
+│  Tier 1: DATABASE (Row Level Security - RLS)                    │
+│  • Policy functions: is_admin(), can_manage(), get_user_role()  │
+│  • Assignment checks: is_assigned_to_project(project_id)        │
+│  • Employee self-read: user_id = auth.uid()                     │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Layer 2: APPLICATION (is_active check)                         │
-│  • User profile fetched on login                                │
-│  • is_active = false blocks sign-in                             │
-│  • Middleware protects dashboard routes                         │
+│  Tier 2: APPLICATION (Active Status Check)                      │
+│  • is_active flag on users table                                │
+│  • Blocked users cannot sign in                                 │
 └─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Layer 3: FRONTEND (Role-based UI)                              │
-│  • Permission-based rendering                                   │
-│  • Role-based navigation                                        │
+│  Tier 3: MIDDLEWARE (Route Protection)                          │
+│  • /api/* and /(dashboard)/* require auth                       │
+│  • Redirect to /signin if unauthenticated                       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Tier 4: FRONTEND (Role-based UI)                               │
+│  • canManage(role) for edit/delete buttons                      │
+│  • restrictedMode for field-level access                        │
+│  • Permission-based navigation                                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### User Roles
+### User Roles & Permissions
 
-| Role | Permissions |
-|------|-------------|
-| `admin` | Full system access |
-| `manager` | Manage clients, projects |
-| `employee` | View assigned items |
+| Role | CRUD Clients | CRUD Projects | Assign Teams | CRUD Employees |
+|------|-------------|---------------|--------------|----------------|
+| `admin` | ✅ Full | ✅ Full | ✅ | ✅ Full |
+| `manager` | ✅ Full | ✅ Full | ✅ | ❌ View only |
+| `employee` | 👁️ View | 📝 Assigned only | ❌ | ❌ Self only |
+| `viewer` | 👁️ View | 👁️ View | ❌ | ❌ |
 
-### Auth Flow
+### Database Functions (SECURITY DEFINER)
 
-```
-1. User signs up → Supabase creates auth.users record
-2. Database trigger → Inserts public.users profile (role: employee)
-3. User signs in → Service checks is_active status
-4. If active → Redirect to dashboard
-5. If inactive → Sign out and show error
+```sql
+-- Get current employee ID for assignment checks
+CREATE FUNCTION get_current_employee_id() RETURNS UUID
+SECURITY DEFINER SET search_path = public AS $$
+  SELECT id FROM employees WHERE user_id = auth.uid()
+$$;
+
+-- Check if user is assigned to a project
+CREATE FUNCTION is_assigned_to_project(p_project_id UUID) RETURNS BOOLEAN
 ```
 
 ---
@@ -383,26 +383,21 @@ features/[feature]/domain/
 ### Test Commands
 
 ```bash
-npm test              # Run all tests (Vitest)
+npm test              # Run all tests (Vitest watch)
 npm test -- --run     # Run once without watch
 npm run build         # TypeScript + build verification
 ```
 
-### Current Coverage
+### Current Test Coverage
 
-| Test File | Tests |
-|-----------|-------|
-| auth/schemas.test.ts | Auth validation |
-| clients/schemas.test.ts | Client validation |
-| clients/service.test.ts | Client CRUD |
-| projects/schemas.test.ts | Project validation |
-| projects/service.test.ts | Project CRUD |
-| communications/schemas.test.ts | Communication validation |
-| communications/service.test.ts | Communication CRUD |
-| employees/schemas.test.ts | Employee validation |
-| employees/service.test.ts | Employee CRUD |
-| milestones/schemas.test.ts | Milestone validation |
-| milestones/service.test.ts | Milestone CRUD |
+| Feature | Schema Tests | Service Tests |
+|---------|-------------|---------------|
+| auth | ✅ | - |
+| clients | ✅ | ✅ |
+| projects | ✅ | ✅ |
+| communications | ✅ | ✅ |
+| employees | ✅ | ✅ |
+| milestones | ✅ | ✅ |
 
 ---
 
@@ -431,21 +426,23 @@ touch src/app/api/[name]/route.ts
 | Need | Location |
 |------|----------|
 | Supabase server client | `src/shared/lib/supabase/server.ts` |
-| Base repository | `src/shared/lib/supabase/base.repository.ts` |
+| RBAC permissions | `src/shared/lib/auth/permissions.ts` |
 | UI components | `src/shared/components/ui/` |
-| FormDialog | `src/shared/components/ui/form-dialog.tsx` |
+| DatePicker | `src/shared/components/ui/date-picker.tsx` |
 | Database types | `src/shared/types/database.types.ts` |
+| Migrations | `supabase/migrations/` |
 
 ### Code Standards
 
 - **Components**: PascalCase, extract sub-components >100 lines
 - **Hooks**: camelCase, prefix with `use`
-- **Schemas**: Two schemas (form + API) per feature
+- **Schemas**: Zod validation + transform function
 - **Types**: No `any`, always define interfaces
-- **Dialogs**: Use `FormDialog` for forms, `AlertDialog` for confirms
+- **Dialogs**: Use `Dialog` for forms, `AlertDialog` for confirms
+- **Date inputs**: Use `DatePicker` component (Calendar + Popover)
 
 ---
 
 > **Last Updated**: 2026-01-07  
-> **Version**: 2.0  
+> **Version**: 2.1  
 > **Maintainer**: Development Team

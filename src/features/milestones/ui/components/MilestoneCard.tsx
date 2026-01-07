@@ -78,16 +78,6 @@ export function MilestoneCard({
   const isAssigned =
     currentEmployeeId && assignees.some((a) => a.employee_id === currentEmployeeId);
 
-  // DEBUG: Log assignment check values
-  console.log('[MilestoneCard] Assignment debug:', {
-    milestoneId: milestone.id,
-    milestoneName: milestone.milestone,
-    currentEmployeeId,
-    assigneeIds: assignees.map(a => a.employee_id),
-    isAssigned,
-    canManage,
-  });
-
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return null;
     return new Date(dateStr).toLocaleDateString('en-US', {
