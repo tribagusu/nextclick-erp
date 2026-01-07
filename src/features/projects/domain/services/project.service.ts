@@ -6,7 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Project } from '@/shared/types/database.types';
 import { ProjectRepository } from './project.repository';
 import type { ProjectListParams, ProjectListResponse, ProjectCreateInput, ProjectUpdateInput } from '../types';
-import { projectFormSchema, transformProjectInput } from '../schemas';
+import { projectApiSchema } from '../schemas';
 
 export class ProjectService {
   private repository: ProjectRepository;
@@ -24,14 +24,14 @@ export class ProjectService {
   }
 
   async createProject(input: ProjectCreateInput): Promise<{ success: boolean; project?: Project; error?: string }> {
-    const result = projectFormSchema.safeParse(input);
+    const result = projectApiSchema.safeParse(input);
     if (!result.success) {
       return { success: false, error: result.error.issues[0].message };
     }
 
     try {
-      const data = transformProjectInput(result.data);
-      const project = await this.repository.create(data);
+      // result.data is already validated, pass directly to repository
+      const project = await this.repository.create(result.data as Partial<Project>);
       return { success: true, project };
     } catch (error) {
       console.error('Create project error:', error);
@@ -40,18 +40,13 @@ export class ProjectService {
   }
 
   async updateProject(id: string, input: ProjectUpdateInput): Promise<{ success: boolean; project?: Project; error?: string }> {
-    const result = projectFormSchema.partial().safeParse(input);
+    const result = projectApiSchema.partial().safeParse(input);
     if (!result.success) {
       return { success: false, error: result.error.issues[0].message };
     }
 
     try {
-      const data = transformProjectInput({
-        project_name: result.data.project_name ?? '',
-        client_id: result.data.client_id ?? '',
-        ...result.data,
-      });
-      const project = await this.repository.update(id, data as Partial<Project>);
+      const project = await this.repository.update(id, result.data as Partial<Project>);
       return { success: true, project };
     } catch (error) {
       console.error('Update project error:', error);

@@ -4,7 +4,7 @@
 
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Pencil, Calendar, DollarSign, Flag, Clock } from 'lucide-react';
 
@@ -15,6 +15,7 @@ import { Badge } from '@/shared/components/ui/badge';
 import { Progress } from '@/shared/components/ui/progress';
 
 import { useProject } from '@/features/projects/ui/hooks/useProjects';
+import { ProjectEditDialog } from '@/features/projects/ui/components/ProjectEditDialog';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-blue-500',
@@ -31,6 +32,7 @@ interface ProjectDetailPageProps {
 export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
   const { id } = use(params);
   const { data: project, isLoading, error } = useProject(id);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   if (error) {
     return (
@@ -91,9 +93,10 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
             <p className="text-muted-foreground">Client: {project.client_name}</p>
           </div>
         </div>
-        <Link href={`/projects/${id}/edit`}>
-          <Button><Pencil className="mr-2 h-4 w-4" />Edit</Button>
-        </Link>
+        <Button onClick={() => setEditDialogOpen(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -157,6 +160,13 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Project Dialog */}
+      <ProjectEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        project={project}
+      />
     </div>
   );
 }

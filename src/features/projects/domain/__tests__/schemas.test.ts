@@ -89,15 +89,15 @@ describe('Project Schemas', () => {
       expect(result.amount_paid).toBe(25000);
     });
 
-    it('should default budgets to 0 for empty strings', () => {
+    it('should default budgets to null for empty strings', () => {
       const result = transformProjectInput({
         project_name: 'Test Project',
         client_id: 'client-uuid',
         total_budget: '',
         amount_paid: '',
       });
-      expect(result.total_budget).toBe(0);
-      expect(result.amount_paid).toBe(0);
+      expect(result.total_budget).toBeNull();
+      expect(result.amount_paid).toBeNull();
     });
 
     it('should transform empty optional fields to null', () => {

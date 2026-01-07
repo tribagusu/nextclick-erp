@@ -56,7 +56,7 @@ describe('ProjectService', () => {
         description: 'Complete website overhaul',
         status: 'draft',
         priority: 'high',
-        total_budget: '50000',
+        total_budget: 50000,
       });
 
       expect(result.success).toBe(true);
