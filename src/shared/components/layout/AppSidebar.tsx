@@ -65,7 +65,7 @@ interface AppSidebarProps {
 // =============================================================================
 
 const mainNavItems: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, requiredPermission: 'dashboard:view' },
+  { label: 'Dashboard', href: '/', icon: LayoutDashboard, requiredPermission: 'dashboard:view' },
   { label: 'Clients', href: '/clients', icon: Users, requiredPermission: 'clients:read' },
   { label: 'Projects', href: '/projects', icon: FolderKanban, requiredPermission: 'projects:read' },
   { label: 'Communications', href: '/communications', icon: MessageSquare, requiredPermission: 'communications:read' },
@@ -84,8 +84,8 @@ export function AppSidebar({ user, onLogout }: AppSidebarProps) {
   const userRole = user?.role ?? 'viewer';
 
   const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === '/dashboard' || pathname === '/';
+    if (href === '/') {
+      return pathname === '/' || pathname === '/';
     }
     return pathname.startsWith(href);
   };

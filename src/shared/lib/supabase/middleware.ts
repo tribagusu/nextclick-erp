@@ -45,22 +45,33 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes - redirect to login if not authenticated
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth')
-  ) {
-    // Redirect to login page
+  // Public auth routes that don't require authentication
+  const publicAuthRoutes = [
+    '/signin',
+    '/signup',
+    '/forgot-password',
+    '/reset-password',
+    '/auth',
+  ];
+  
+  const isPublicAuthRoute = publicAuthRoutes.some(route => 
+    request.nextUrl.pathname.startsWith(route)
+  );
+
+  // Protected routes - redirect to signin if not authenticated
+  if (!user && !isPublicAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    url.pathname = '/signin';
     return NextResponse.redirect(url);
   }
 
-  // If logged in and trying to access login page, redirect to dashboard
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
+  // If logged in and trying to access auth pages (except reset-password), redirect to dashboard
+  if (user && (
+    request.nextUrl.pathname.startsWith('/signin') || 
+    request.nextUrl.pathname.startsWith('/signup')
+  )) {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    url.pathname = '/';
     return NextResponse.redirect(url);
   }
 

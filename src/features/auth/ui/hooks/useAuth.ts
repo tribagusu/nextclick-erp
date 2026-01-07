@@ -35,7 +35,9 @@ async function signIn(credentials: LoginCredentials): Promise<AuthResponse> {
   });
   const json = await response.json();
   if (!response.ok) {
-    return { success: false, error: json.error || 'Sign in failed' };
+    // Extract message from error object { code, message }
+    const errorMessage = typeof json.error === 'object' ? json.error.message : json.error;
+    return { success: false, error: errorMessage || 'Sign in failed' };
   }
   return json.data;
 }
@@ -48,7 +50,9 @@ async function signUp(data: RegisterData): Promise<AuthResponse> {
   });
   const json = await response.json();
   if (!response.ok) {
-    return { success: false, error: json.error || 'Sign up failed' };
+    // Extract message from error object { code, message }
+    const errorMessage = typeof json.error === 'object' ? json.error.message : json.error;
+    return { success: false, error: errorMessage || 'Sign up failed' };
   }
   return json.data;
 }
@@ -68,7 +72,8 @@ async function forgotPassword(email: string): Promise<AuthResponse> {
   });
   const json = await response.json();
   if (!response.ok) {
-    return { success: false, error: json.error || 'Failed to send reset email' };
+    const errorMessage = typeof json.error === 'object' ? json.error.message : json.error;
+    return { success: false, error: errorMessage || 'Failed to send reset email' };
   }
   return { success: true, message: json.message };
 }
@@ -81,7 +86,8 @@ async function resetPassword(password: string, confirmPassword: string): Promise
   });
   const json = await response.json();
   if (!response.ok) {
-    return { success: false, error: json.error || 'Failed to reset password' };
+    const errorMessage = typeof json.error === 'object' ? json.error.message : json.error;
+    return { success: false, error: errorMessage || 'Failed to reset password' };
   }
   return { success: true, message: json.message };
 }

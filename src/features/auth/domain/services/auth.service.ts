@@ -49,6 +49,18 @@ export class AuthService {
       };
     }
 
+    // Check if user account is active
+    // Cast to User type since DB types may not have is_active yet
+    const profile = userProfile as User;
+    if (!profile.is_active) {
+      // Sign out the inactive user
+      await this.client.auth.signOut();
+      return {
+        success: false,
+        error: 'Your account has been disabled. Please contact an administrator.',
+      };
+    }
+
     return {
       success: true,
       user: userProfile as User,
@@ -85,26 +97,20 @@ export class AuthService {
       };
     }
 
-    // The user profile should be created automatically by DB trigger
-    // But we'll fetch it to confirm and return
-    const { data: userProfile, error: profileError } = await this.client
-      .from('users')
-      .select('*')
-      .eq('id', authData.user.id)
-      .single();
-
-    if (profileError) {
-      // User might need email confirmation first
+    // Check if email confirmation is required
+    // If identities is empty, user already exists or needs email confirmation
+    if (!authData.user.identities || authData.user.identities.length === 0) {
       return {
         success: true,
         message: 'Please check your email to confirm your account',
       };
     }
 
+    // User profile will be created by database trigger when they confirm email
+    // For now, just return success
     return {
       success: true,
-      user: userProfile as User,
-      message: 'Account created successfully',
+      message: 'Account created! Please check your email to confirm.',
     };
   }
 

@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -33,6 +33,8 @@ export function SignUpForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const signUpMutation = useSignUp();
 
   const {
@@ -64,14 +66,13 @@ export function SignUpForm() {
       return;
     }
 
-    if (result.message?.includes('email')) {
-      // User needs to confirm email
-      setSuccess(result.message);
-    } else {
-      // User created and logged in
-      router.push('/dashboard');
-      router.refresh();
-    }
+    // Show success message and redirect to signin
+    setSuccess('Account created! Please check your email to confirm, then sign in.');
+    
+    // Redirect to signin after short delay
+    setTimeout(() => {
+      router.push('/signin');
+    }, 3000);
   };
 
   return (
@@ -127,12 +128,28 @@ export function SignUpForm() {
 
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="new-password"
-              {...register('password')}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                className="pr-10"
+                {...register('password')}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
             {errors.password && (
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
@@ -140,12 +157,28 @@ export function SignUpForm() {
 
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              autoComplete="new-password"
-              {...register('confirmPassword')}
-            />
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                className="pr-10"
+                {...register('confirmPassword')}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
             {errors.confirmPassword && (
               <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
             )}

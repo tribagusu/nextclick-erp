@@ -6,7 +6,7 @@
 
 import { createClient } from '@/shared/lib/supabase/server';
 import { AuthService } from '../domain/services/auth.service';
-import { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } from '../domain/schemas';
+import { loginSchema, signUpApiSchema, forgotPasswordSchema, resetPasswordSchema } from '../domain/schemas';
 import {
   successResponse,
   validationErrorResponse,
@@ -51,7 +51,7 @@ export async function handleSignUp(request: Request) {
     const body = await request.json();
 
     // Validate request body
-    const result = registerSchema.safeParse(body);
+    const result = signUpApiSchema.safeParse(body);
     if (!result.success) {
       const firstError = result.error.issues[0];
       return validationErrorResponse(firstError.message);
