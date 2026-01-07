@@ -4,7 +4,7 @@
 
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Pencil, Mail, Phone, Building, MapPin, FileText, FolderKanban } from 'lucide-react';
 
@@ -14,6 +14,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Badge } from '@/shared/components/ui/badge';
 
 import { useClient } from '@/features/clients/ui/hooks/useClients';
+import { ClientEditDialog } from '@/features/clients/ui/components/ClientEditDialog';
 
 interface ClientDetailPageProps {
   params: Promise<{ id: string }>;
@@ -22,6 +23,7 @@ interface ClientDetailPageProps {
 export default function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { id } = use(params);
   const { data: client, isLoading, error } = useClient(id);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   if (error) {
     return (
@@ -74,12 +76,10 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
             </p>
           </div>
         </div>
-        <Link href={`/clients/${id}/edit`}>
-          <Button>
-            <Pencil className="mr-2 h-4 w-4" />
-            Edit Client
-          </Button>
-        </Link>
+        <Button onClick={() => setEditDialogOpen(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit Client
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -156,6 +156,13 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
           </Card>
         )}
       </div>
+
+      {/* Edit Client Dialog */}
+      <ClientEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        client={client}
+      />
     </div>
   );
 }
