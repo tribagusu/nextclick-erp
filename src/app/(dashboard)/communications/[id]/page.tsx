@@ -4,7 +4,7 @@
 
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Pencil, Calendar, Mail, Phone, Users, Clock, Bell } from 'lucide-react';
 
@@ -14,6 +14,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Badge } from '@/shared/components/ui/badge';
 
 import { useCommunication } from '@/features/communications/ui/hooks/useCommunications';
+import { CommunicationEditDialog } from '@/features/communications/ui/components/CommunicationEditDialog';
 import type { CommunicationMode } from '@/shared/types/database.types';
 
 const modeIcons: Record<CommunicationMode, React.ReactNode> = {
@@ -35,6 +36,7 @@ interface CommunicationDetailPageProps {
 export default function CommunicationDetailPage({ params }: CommunicationDetailPageProps) {
   const { id } = use(params);
   const { data: communication, isLoading, error } = useCommunication(id);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   if (error) {
     return (
@@ -92,9 +94,10 @@ export default function CommunicationDetailPage({ params }: CommunicationDetailP
             <p className="text-muted-foreground">Client: {communication.client_name}</p>
           </div>
         </div>
-        <Link href={`/communications/${id}/edit`}>
-          <Button><Pencil className="mr-2 h-4 w-4" />Edit</Button>
-        </Link>
+        <Button onClick={() => setEditDialogOpen(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          Edit
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -148,6 +151,13 @@ export default function CommunicationDetailPage({ params }: CommunicationDetailP
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Dialog */}
+      <CommunicationEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        communication={communication}
+      />
     </div>
   );
 }

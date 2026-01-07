@@ -6,7 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, CommunicationLog } from '@/shared/types/database.types';
 import { CommunicationRepository } from './communication.repository';
 import type { CommunicationListParams, CommunicationListResponse, CommunicationCreateInput, CommunicationUpdateInput } from '../types';
-import { communicationFormSchema, transformCommunicationInput } from '../schemas';
+import { communicationApiSchema } from '../schemas';
 
 export class CommunicationService {
   private repository: CommunicationRepository;
@@ -24,14 +24,13 @@ export class CommunicationService {
   }
 
   async createCommunication(input: CommunicationCreateInput): Promise<{ success: boolean; communication?: CommunicationLog; error?: string }> {
-    const result = communicationFormSchema.safeParse(input);
+    const result = communicationApiSchema.safeParse(input);
     if (!result.success) {
       return { success: false, error: result.error.issues[0].message };
     }
 
     try {
-      const data = transformCommunicationInput(result.data);
-      const communication = await this.repository.create(data);
+      const communication = await this.repository.create(result.data as Partial<CommunicationLog>);
       return { success: true, communication };
     } catch (error) {
       console.error('Create communication error:', error);
@@ -40,20 +39,13 @@ export class CommunicationService {
   }
 
   async updateCommunication(id: string, input: CommunicationUpdateInput): Promise<{ success: boolean; communication?: CommunicationLog; error?: string }> {
-    const result = communicationFormSchema.partial().safeParse(input);
+    const result = communicationApiSchema.partial().safeParse(input);
     if (!result.success) {
       return { success: false, error: result.error.issues[0].message };
     }
 
     try {
-      const data = transformCommunicationInput({
-        client_id: result.data.client_id ?? '',
-        date: result.data.date ?? '',
-        mode: result.data.mode ?? 'email',
-        summary: result.data.summary ?? '',
-        ...result.data,
-      });
-      const communication = await this.repository.update(id, data as Partial<CommunicationLog>);
+      const communication = await this.repository.update(id, result.data as Partial<CommunicationLog>);
       return { success: true, communication };
     } catch (error) {
       console.error('Update communication error:', error);

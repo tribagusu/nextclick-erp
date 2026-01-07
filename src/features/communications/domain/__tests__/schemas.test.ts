@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { communicationFormSchema, transformCommunicationInput, communicationModeOptions } from '../schemas';
+import { communicationFormSchema, communicationModeOptions } from '../schemas';
 
 describe('Communication Schemas', () => {
   describe('communicationFormSchema', () => {
@@ -79,53 +79,6 @@ describe('Communication Schemas', () => {
         summary: 'Test summary content here',
       });
       expect(result.success).toBe(false);
-    });
-  });
-
-  describe('transformCommunicationInput', () => {
-    it('should transform empty optional fields to null', () => {
-      const result = transformCommunicationInput({
-        client_id: 'client-uuid',
-        date: '2024-01-15',
-        mode: 'email',
-        summary: 'Test summary content here',
-        project_id: '',
-        follow_up_date: '',
-      });
-      expect(result.project_id).toBeNull();
-      expect(result.follow_up_date).toBeNull();
-    });
-
-    it('should default follow_up_required to false', () => {
-      const result = transformCommunicationInput({
-        client_id: 'client-uuid',
-        date: '2024-01-15',
-        mode: 'email',
-        summary: 'Test summary content here',
-      });
-      expect(result.follow_up_required).toBe(false);
-    });
-
-    it('should preserve follow_up_required when true', () => {
-      const result = transformCommunicationInput({
-        client_id: 'client-uuid',
-        date: '2024-01-15',
-        mode: 'email',
-        summary: 'Test summary content here',
-        follow_up_required: true,
-      });
-      expect(result.follow_up_required).toBe(true);
-    });
-
-    it('should preserve valid project_id', () => {
-      const result = transformCommunicationInput({
-        client_id: 'client-uuid',
-        date: '2024-01-15',
-        mode: 'email',
-        summary: 'Test summary content here',
-        project_id: 'project-uuid',
-      });
-      expect(result.project_id).toBe('project-uuid');
     });
   });
 });
