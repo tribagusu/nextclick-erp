@@ -1,6 +1,6 @@
-# Next Click ERP V2 - Architecture Documentation
+# Nextclick ERP - Architecture Documentation
 
-> **Purpose**: Comprehensive architecture overview for the Next Click ERP V2 codebase.
+> **Purpose**: Comprehensive architecture overview for the Nextclick ERP codebase.
 
 ## Table of Contents
 
