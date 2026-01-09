@@ -97,9 +97,10 @@ export class ClientService {
     try {
       await this.repository.softDelete(id);
       return { success: true };
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Delete client error:', error);
-      return { success: false, error: 'Failed to delete client' };
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete client';
+      return { success: false, error: errorMessage };
     }
   }
 
