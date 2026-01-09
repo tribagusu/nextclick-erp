@@ -85,6 +85,3 @@ npm run lint     # Lint code
   - [Backend](./docs/onboarding/BACKEND.md)
   - [Database](./docs/onboarding/DATABASE.md)
 
-## License
-
-Private - All rights reserved
