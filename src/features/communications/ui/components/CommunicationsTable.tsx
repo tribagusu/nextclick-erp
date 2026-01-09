@@ -8,14 +8,15 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import type { CommunicationLog, CommunicationMode } from '@/shared/types/database.types';
 import { useCommunications, useDeleteCommunication } from '../hooks/useCommunications';
+import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 
 import { CommunicationsToolbar } from './CommunicationsToolbar';
 import { CommunicationsDataTable } from './CommunicationsDataTable';
 import { CommunicationsPagination } from './CommunicationsPagination';
-import { CommunicationDeleteDialog } from './CommunicationDeleteDialog';
 import { CommunicationFormDialog } from './CommunicationFormDialog';
 import { CommunicationEditDialog } from './CommunicationEditDialog';
 
@@ -59,8 +60,13 @@ export function CommunicationsTable() {
 
   const handleDelete = async () => {
     if (deleteId) {
-      await deleteMutation.mutateAsync(deleteId);
-      setDeleteId(null);
+      try {
+        await deleteMutation.mutateAsync(deleteId);
+        setDeleteId(null);
+        toast.success('Communication log deleted successfully');
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Failed to delete communication');
+      }
     }
   };
 
@@ -109,10 +115,13 @@ export function CommunicationsTable() {
       />
 
       {/* Dialogs */}
-      <CommunicationDeleteDialog
+      <DeleteConfirmDialog
         open={!!deleteId}
         onOpenChange={() => setDeleteId(null)}
         onConfirm={handleDelete}
+        title="Delete Communication Log"
+        description="Are you sure you want to delete this communication log? This action cannot be undone."
+        isLoading={deleteMutation.isPending}
       />
 
       <CommunicationFormDialog

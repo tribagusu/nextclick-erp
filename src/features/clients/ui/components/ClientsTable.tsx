@@ -8,14 +8,15 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import type { Client } from '@/shared/types/database.types';
 import { useClients, useDeleteClient } from '../hooks/useClients';
+import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 
 import { ClientsToolbar } from './ClientsToolbar';
 import { ClientsDataTable } from './ClientsDataTable';
 import { ClientsPagination } from './ClientsPagination';
-import { ClientDeleteDialog } from './ClientDeleteDialog';
 import { ClientFormDialog } from './ClientFormDialog';
 import { ClientEditDialog } from './ClientEditDialog';
 
@@ -56,8 +57,13 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
 
   const handleDelete = async () => {
     if (deleteId) {
-      await deleteMutation.mutateAsync(deleteId);
-      setDeleteId(null);
+      try {
+        await deleteMutation.mutateAsync(deleteId);
+        setDeleteId(null);
+        toast.success('Client deleted successfully');
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Failed to delete client');
+      }
     }
   };
 
@@ -104,10 +110,13 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
       />
 
       {/* Dialogs */}
-      <ClientDeleteDialog
+      <DeleteConfirmDialog
         open={!!deleteId}
         onOpenChange={() => setDeleteId(null)}
         onConfirm={handleDelete}
+        title="Delete Client"
+        description="Are you sure you want to delete this client? This action cannot be undone."
+        isLoading={deleteMutation.isPending}
       />
 
       <ClientFormDialog

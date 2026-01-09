@@ -8,14 +8,15 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import type { Project, ProjectStatus } from '@/shared/types/database.types';
 import { useProjects, useDeleteProject } from '../hooks/useProjects';
+import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 
 import { ProjectsToolbar } from './ProjectsToolbar';
 import { ProjectsDataTable } from './ProjectsDataTable';
 import { ProjectsPagination } from './ProjectsPagination';
-import { ProjectDeleteDialog } from './ProjectDeleteDialog';
 import { ProjectFormDialog } from './ProjectFormDialog';
 import { ProjectEditDialog } from './ProjectEditDialog';
 
@@ -59,8 +60,13 @@ export function ProjectsTable() {
 
   const handleDelete = async () => {
     if (deleteId) {
-      await deleteMutation.mutateAsync(deleteId);
-      setDeleteId(null);
+      try {
+        await deleteMutation.mutateAsync(deleteId);
+        setDeleteId(null);
+        toast.success('Project deleted successfully');
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Failed to delete project');
+      }
     }
   };
 
@@ -109,10 +115,13 @@ export function ProjectsTable() {
       />
 
       {/* Dialogs */}
-      <ProjectDeleteDialog
+      <DeleteConfirmDialog
         open={!!deleteId}
         onOpenChange={() => setDeleteId(null)}
         onConfirm={handleDelete}
+        title="Delete Project"
+        description="Are you sure you want to delete this project? This action cannot be undone."
+        isLoading={deleteMutation.isPending}
       />
 
       <ProjectFormDialog

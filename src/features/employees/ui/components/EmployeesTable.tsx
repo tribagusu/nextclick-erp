@@ -7,6 +7,7 @@
 import Link from 'next/link';
 import { MoreHorizontal, Pencil, Trash2, Eye, Search } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -33,16 +34,7 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 import { Skeleton } from '@/shared/components/ui/skeleton';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/shared/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 
 import type { Employee, EmployeeStatus } from '@/shared/types/database.types';
 import { useEmployees, useDeleteEmployee } from '../hooks/useEmployees';
@@ -72,8 +64,13 @@ export function EmployeesTable() {
 
   const handleDelete = async () => {
     if (deleteId) {
-      await deleteMutation.mutateAsync(deleteId);
-      setDeleteId(null);
+      try {
+        await deleteMutation.mutateAsync(deleteId);
+        setDeleteId(null);
+        toast.success('Employee deleted successfully');
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : 'Failed to delete employee');
+      }
     }
   };
 
@@ -193,18 +190,14 @@ export function EmployeesTable() {
         </div>
       )}
 
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Employee</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={!!deleteId}
+        onOpenChange={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        title="Delete Employee"
+        description="Are you sure you want to delete this employee? This action cannot be undone."
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

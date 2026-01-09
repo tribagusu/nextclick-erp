@@ -9,20 +9,12 @@
 
 import { useState } from 'react';
 import { Pencil, Trash2, Clock, Users, ClipboardEdit } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/shared/components/ui/alert-dialog';
+import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 
 import { useDeleteMilestone } from '../hooks/useMilestones';
 import { useMilestoneEmployees } from '../hooks/useMilestoneEmployees';
@@ -91,8 +83,9 @@ export function MilestoneCard({
     try {
       await deleteMilestone.mutateAsync(milestone.id);
       setDeleteDialogOpen(false);
-    } catch {
-      // Handle error silently - toast would be better here
+      toast.success('Milestone deleted successfully');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete milestone');
     }
   };
 
@@ -218,27 +211,14 @@ export function MilestoneCard({
       />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Milestone</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete &ldquo;{milestone.milestone}&rdquo;? This action
-              cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              disabled={deleteMilestone.isPending}
-            >
-              {deleteMilestone.isPending ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        title="Delete Milestone"
+        description={`Are you sure you want to delete "${milestone.milestone}"? This action cannot be undone.`}
+        isLoading={deleteMilestone.isPending}
+      />
     </>
   );
 }
