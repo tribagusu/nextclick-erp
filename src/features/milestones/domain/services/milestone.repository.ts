@@ -19,7 +19,7 @@ export class MilestoneRepository extends BaseRepository<ProjectMilestone> {
       search,
       status,
       projectId,
-      sortBy = 'created_at',
+      sortBy = 'due_date',
       sortOrder = 'desc',
     } = params;
 

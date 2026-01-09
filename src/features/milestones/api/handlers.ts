@@ -26,7 +26,7 @@ export async function handleGetMilestones(request: Request) {
       search: url.searchParams.get('search') ?? undefined,
       status: (url.searchParams.get('status') as MilestoneStatus) ?? undefined,
       projectId: url.searchParams.get('projectId') ?? undefined,
-      sortBy: (url.searchParams.get('sortBy') as 'milestone' | 'created_at') ?? 'created_at',
+      sortBy: (url.searchParams.get('sortBy') as 'milestone' | 'due_date') ?? 'due_date',
       sortOrder: (url.searchParams.get('sortOrder') as 'asc' | 'desc') ?? 'desc',
     };
 
