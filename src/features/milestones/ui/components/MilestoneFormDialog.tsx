@@ -12,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format, parseISO } from 'date-fns';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import {
   Dialog,
@@ -134,12 +135,14 @@ export function MilestoneFormDialog({
         } else {
           await updateMilestone.mutateAsync({ id: milestoneId, ...transformed });
         }
+        toast.success('Milestone updated successfully');
       } else {
         await createMilestone.mutateAsync(transformed);
+        toast.success('Milestone created successfully');
       }
       onOpenChange(false);
-    } catch {
-      // Error is handled by the mutation state
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 

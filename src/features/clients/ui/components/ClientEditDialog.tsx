@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -71,9 +72,11 @@ export function ClientEditDialog({ open, onOpenChange, client, onSuccess }: Clie
     try {
       const transformed = transformClientInput(data);
       await updateMutation.mutateAsync({ id: client.id, ...transformed });
+      toast.success('Client updated successfully');
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update client');
       setError(err instanceof Error ? err.message : 'Failed to update client');
     }
   };

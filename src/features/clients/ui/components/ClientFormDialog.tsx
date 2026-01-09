@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -53,10 +54,12 @@ export function ClientFormDialog({ open, onOpenChange, onSuccess }: ClientFormDi
     try {
       const transformed = transformClientInput(data);
       await createMutation.mutateAsync(transformed);
+      toast.success('Client created successfully');
       reset();
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to create client');
       setError(err instanceof Error ? err.message : 'Failed to create client');
     }
   };

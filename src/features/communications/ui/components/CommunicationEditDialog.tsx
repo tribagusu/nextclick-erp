@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -107,9 +108,11 @@ export function CommunicationEditDialog({ open, onOpenChange, communication, onS
         follow_up_required: data.follow_up_required ?? false,
         follow_up_date: data.follow_up_date || undefined,
       });
+      toast.success('Communication log updated successfully');
       onOpenChange(false);
       onSuccess?.();
     } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to update communication log');
       setError(err instanceof Error ? err.message : 'Failed to update communication log');
     }
   };
