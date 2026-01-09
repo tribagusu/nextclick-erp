@@ -14,6 +14,8 @@ import { format, parseISO } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { devLog } from '@/shared/utils';
+
 import {
   Dialog,
   DialogContent,
@@ -120,7 +122,17 @@ export function MilestoneFormDialog({
   }, [milestone, isEditing, projectId, reset]);
 
   const handleFormSubmit = async (data: MilestoneFormData) => {
-    const transformed = transformMilestoneInput(data);
+    // Debug logging
+    const log = devLog.component('MilestoneFormDialog');
+    log.debug('Form data from react-hook-form:', data);
+    log.debug('projectId prop:', projectId);
+    
+    // Ensure project_id is included (react-hook-form only submits registered fields)
+    const dataWithProjectId = { ...data, project_id: projectId };
+    log.debug('Data with projectId added:', dataWithProjectId);
+    
+    const transformed = transformMilestoneInput(dataWithProjectId);
+    log.debug('Transformed data for API:', transformed);
 
     try {
       if (isEditing && milestoneId) {

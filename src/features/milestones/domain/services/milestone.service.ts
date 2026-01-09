@@ -6,7 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, ProjectMilestone } from '@/shared/types/database.types';
 import { MilestoneRepository } from './milestone.repository';
 import type { MilestoneListParams, MilestoneListResponse, MilestoneCreateInput, MilestoneUpdateInput } from '../types';
-import { milestoneFormSchema, transformMilestoneInput } from '../schemas';
+import { milestoneApiSchema } from '../schemas';
 
 export class MilestoneService {
   private repository: MilestoneRepository;
@@ -24,14 +24,22 @@ export class MilestoneService {
   }
 
   async createMilestone(input: MilestoneCreateInput): Promise<{ success: boolean; milestone?: ProjectMilestone; error?: string }> {
-    const result = milestoneFormSchema.safeParse(input);
+    // Debug logging (server-side, always logs)
+    console.log('[MilestoneService] createMilestone input:', JSON.stringify(input, null, 2));
+    
+    const result = milestoneApiSchema.safeParse(input);
+    console.log('[MilestoneService] Validation result:', {
+      success: result.success,
+      error: result.success ? null : result.error.issues,
+    });
+    
     if (!result.success) {
       return { success: false, error: result.error.issues[0].message };
     }
 
     try {
-      const data = transformMilestoneInput(result.data);
-      const milestone = await this.repository.create(data);
+      // Input is already transformed by client, use validated data directly
+      const milestone = await this.repository.create(result.data);
       return { success: true, milestone };
     } catch (error) {
       console.error('Create milestone error:', error);
@@ -40,7 +48,7 @@ export class MilestoneService {
   }
 
   async updateMilestone(id: string, input: MilestoneUpdateInput): Promise<{ success: boolean; milestone?: ProjectMilestone; error?: string }> {
-    const result = milestoneFormSchema.partial().safeParse(input);
+    const result = milestoneApiSchema.partial().safeParse(input);
     if (!result.success) {
       return { success: false, error: result.error.issues[0].message };
     }
