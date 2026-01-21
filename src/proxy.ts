@@ -1,13 +1,15 @@
 /**
- * Next.js Middleware
+ * Next.js Proxy (it was Middleware)
  * 
  * Handles authentication and route protection.
+ * 
+ * @see https://nextjs.org/docs/app/api-reference/file-conventions/proxy
  */
 
 import { type NextRequest } from 'next/server';
-import { updateSession } from '@/shared/lib/supabase/middleware';
+import { updateSession } from '../supabase/middleware';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }
 

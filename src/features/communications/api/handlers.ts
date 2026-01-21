@@ -2,7 +2,7 @@
  * Communications API Handlers
  */
 
-import { createClient } from '@/shared/lib/supabase/server';
+import { createClient } from '../../../../supabase/server';
 import { CommunicationService } from '../domain/services/communication.service';
 import {
   successResponse,

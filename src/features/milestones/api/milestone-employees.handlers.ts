@@ -3,7 +3,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/shared/lib/supabase/server';
+import { createClient } from '../../../../supabase/server';
 import type { MilestoneEmployeeListResponse } from '../domain/milestone-employees.types';
 
 /**

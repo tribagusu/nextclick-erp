@@ -4,7 +4,7 @@
  * HTTP request handlers for authentication endpoints.
  */
 
-import { createClient } from '@/shared/lib/supabase/server';
+import { createClient } from '../../../../supabase/server';
 import { AuthService } from '../domain/services/auth.service';
 import { loginSchema, signUpApiSchema, forgotPasswordSchema, resetPasswordSchema } from '../domain/schemas';
 import {

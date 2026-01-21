@@ -4,7 +4,7 @@
  * HTTP request handlers for dashboard endpoints.
  */
 
-import { createClient } from '@/shared/lib/supabase/server';
+import { createClient } from '../../../../supabase/server';
 import { DashboardService } from '../domain/services/dashboard.service';
 import { successResponse, internalErrorResponse, unauthorizedResponse } from '@/shared/lib/api/api-utils';
 

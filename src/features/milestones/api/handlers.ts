@@ -2,7 +2,7 @@
  * Milestones API Handlers
  */
 
-import { createClient } from '@/shared/lib/supabase/server';
+import { createClient } from '../../../../supabase/server';
 import { MilestoneService } from '../domain/services/milestone.service';
 import {
   successResponse,

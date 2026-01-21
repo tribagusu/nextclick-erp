@@ -4,7 +4,7 @@
  * HTTP request handlers for client CRUD operations.
  */
 
-import { createClient } from '@/shared/lib/supabase/server';
+import { createClient } from '../../../../supabase/server';
 import { ClientService } from '../domain/services/client.service';
 import {
   successResponse,

@@ -2,7 +2,7 @@
  * Projects API Handlers
  */
 
-import { createClient } from '@/shared/lib/supabase/server';
+import { createClient } from '../../../../supabase/server';
 import { ProjectService } from '../domain/services/project.service';
 import {
   successResponse,

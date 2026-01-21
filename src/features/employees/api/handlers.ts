@@ -2,7 +2,7 @@
  * Employees Feature - API Handlers
  */
 
-import { createClient } from '@/shared/lib/supabase/server';
+import { createClient } from '../../../../supabase/server';
 import { EmployeeService } from '../domain/services/employee.service';
 import {
   successResponse,

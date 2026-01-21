@@ -6,7 +6,7 @@
  */
 
 import { redirect } from 'next/navigation';
-import { createClient } from '@/shared/lib/supabase/server';
+import { createClient } from '../../../supabase/server';
 import { DashboardLayoutClient } from './DashboardLayoutClient';
 import type { User } from '@/shared/types/database.types';
 
