@@ -66,3 +66,6 @@
 - [ ] No `any` types remain in the modified files.
 - [ ] All new components are responsive and tested on mobile viewports.
 - [ ] All code passes `npm run build` and `npm test`.
+
+
+> Read: [PR_TEMPLATE.md](./PR_TEMPLATE.md)
