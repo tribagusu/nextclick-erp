@@ -24,7 +24,7 @@ export function getInvalidCommunicationMock() {
   return {
     client_id: '',
     date: '',
-    mode: 'in person' ,
+    mode: 'invalid' ,
     summary: 'too short',
     follow_up_required: 0,
   };
