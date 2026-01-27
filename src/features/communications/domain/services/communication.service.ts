@@ -5,7 +5,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, CommunicationLog } from '@/shared/types/database.types';
 import { CommunicationRepository } from './communication.repository';
-import type { CommunicationListParams, CommunicationListResponse, CommunicationCreateInput, CommunicationUpdateInput } from '../types';
+import type { CommunicationListParams, CommunicationListResponse, CommunicationUpdateInput } from '../types';
 import { communicationApiSchema } from '../schemas';
 
 export class CommunicationService {

@@ -3,7 +3,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, CommunicationLog, CommunicationMode, Client, Project } from '@/shared/types/database.types';
+import type { Database, CommunicationLog, Client, Project } from '@/shared/types/database.types';
 import { BaseRepository } from '@/shared/lib/api/base-repository';
 import type { CommunicationListParams, CommunicationListResponse } from '../types';
 

@@ -3,7 +3,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Project, ProjectStatus, ProjectPriority, Client } from '@/shared/types/database.types';
+import type { Database, Project, Client } from '@/shared/types/database.types';
 import { BaseRepository } from '@/shared/lib/api/base-repository';
 import type { ProjectListParams, ProjectListResponse } from '../types';
 
