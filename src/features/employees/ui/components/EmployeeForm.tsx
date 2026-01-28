@@ -98,11 +98,13 @@ export function EmployeeForm({
             <div className="space-y-2">
               <Label htmlFor="phone">Phone</Label>
               <Input id="phone" placeholder="+1 (555) 000-0000" {...register('phone')} />
+              {errors.phone && <p className="text-sm text-destructive">{errors.phone.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="position">Position</Label>
               <Input id="position" placeholder="Job title" {...register('position')} />
+              {errors.position && <p className="text-sm text-destructive">{errors.position.message}</p>}
             </div>
           </div>
 
@@ -110,6 +112,7 @@ export function EmployeeForm({
             <div className="space-y-2">
               <Label htmlFor="department">Department</Label>
               <Input id="department" placeholder="Department" {...register('department')} />
+              {errors.department && <p className="text-sm text-destructive">{errors.department.message}</p>}
             </div>
 
             <div className="space-y-2">
@@ -129,6 +132,7 @@ export function EmployeeForm({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.status && <p className="text-sm text-destructive">{errors.status.message}</p>}
             </div>
           </div>
 
@@ -136,11 +140,13 @@ export function EmployeeForm({
             <div className="space-y-2">
               <Label htmlFor="hire_date">Hire Date</Label>
               <Input id="hire_date" type="date" {...register('hire_date')} />
+              {errors.hire_date && <p className="text-sm text-destructive">{errors.hire_date.message}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="salary">Salary</Label>
               <Input id="salary" type="number" placeholder="0.00" {...register('salary')} />
+              {errors.salary && <p className="text-sm text-destructive">{errors.salary.message}</p>}
             </div>
           </div>
 

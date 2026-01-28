@@ -16,7 +16,7 @@ export const employeeStatusOptions = ['active', 'inactive', 'on_leave'] as const
 export const employeeFormSchema = z.object({
   name: z
     .string()
-    .min(1, 'Employee name is required')
+    .min(1, 'Please enter the employee\'s full name')
     .min(2, 'Name must be at least 2 characters'),
   email: z
     .string()
@@ -25,14 +25,20 @@ export const employeeFormSchema = z.object({
     .or(z.literal('')),
   phone: z
     .string()
+    .refine(
+      (val) => !val || /^[0-9+\-()\s]*$/.test(val),
+      'Phone number contains invalid characters'
+    )
     .optional()
     .or(z.literal('')),
   position: z
     .string()
+    .max(100, 'Position title cannot exceed 100 characters')
     .optional()
     .or(z.literal('')),
   department: z
     .string()
+    .max(100, 'Department name cannot exceed 100 characters')
     .optional()
     .or(z.literal('')),
   hire_date: z
@@ -40,10 +46,16 @@ export const employeeFormSchema = z.object({
     .optional()
     .or(z.literal('')),
   status: z
-    .enum(employeeStatusOptions)
+    .enum(employeeStatusOptions, {
+      message: 'Please select a valid employment status',
+    })
     .default('active'),
   salary: z
     .string()
+    .refine(
+      (val) => !val || !isNaN(parseFloat(val)),
+      'Please enter a valid salary amount'
+    )
     .optional()
     .or(z.literal('')),
 });
