@@ -13,18 +13,26 @@ export const milestoneStatusOptions = ['pending', 'in_progress', 'completed', 'c
 export const milestoneFormSchema = z.object({
   project_id: z
     .string()
-    .min(1, 'Project is required'),
+    .min(1, 'Please select a project for this milestone'),
   milestone: z
     .string()
-    .min(1, 'Milestone name is required')
-    .min(2, 'Name must be at least 2 characters'),
-  description: z.string().optional(),
+    .min(1, 'Please enter a milestone name')
+    .min(2, 'Milestone name must be at least 2 characters'),
+  description: z
+    .string()
+    .max(1000, 'Description cannot exceed 1000 characters')
+    .optional(),
   due_date: z.string().optional(),
   completion_date: z.string().optional(),
   status: z
-    .enum(milestoneStatusOptions)
+    .enum(milestoneStatusOptions, {
+      message: 'Please select a valid milestone status',
+    })
     .default('pending'),
-  remarks: z.string().optional(),
+  remarks: z
+    .string()
+    .max(500, 'Remarks cannot exceed 500 characters')
+    .optional(),
 });
 
 export type MilestoneFormData = z.input<typeof milestoneFormSchema>;
@@ -36,16 +44,18 @@ export type MilestoneFormData = z.input<typeof milestoneFormSchema>;
 export const milestoneApiSchema = z.object({
   project_id: z
     .string()
-    .min(1, 'Project is required'),
+    .min(1, 'Please select a project for this milestone'),
   milestone: z
     .string()
-    .min(1, 'Milestone name is required')
-    .min(2, 'Name must be at least 2 characters'),
+    .min(1, 'Please enter a milestone name')
+    .min(2, 'Milestone name must be at least 2 characters'),
   // Use transform to convert undefined to null for DB compatibility
   description: z.string().nullish().transform(v => v ?? null),
   due_date: z.string().nullish().transform(v => v ?? null),
   completion_date: z.string().nullish().transform(v => v ?? null),
-  status: z.enum(milestoneStatusOptions).optional().transform(v => v ?? 'pending'),
+  status: z.enum(milestoneStatusOptions, {
+    message: 'Please select a valid milestone status',
+  }).optional().transform(v => v ?? 'pending'),
   remarks: z.string().nullish().transform(v => v ?? null),
 });
 
