@@ -118,7 +118,7 @@ export function ClientEditDialog({ open, onOpenChange, client, onSuccess }: Clie
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-email">Email</Label>
+            <Label htmlFor="edit-email">Email *</Label>
             <Input
               id="edit-email"
               type="email"
@@ -133,31 +133,40 @@ export function ClientEditDialog({ open, onOpenChange, client, onSuccess }: Clie
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="edit-phone">Phone</Label>
+            <Label htmlFor="edit-phone">Phone *</Label>
             <Input
               id="edit-phone"
               placeholder="+1 (555) 000-0000"
               {...register('phone')}
             />
+            {errors.phone && (
+              <p className="text-sm text-destructive">{errors.phone.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-company">Company Name</Label>
+            <Label htmlFor="edit-company">Company Name *</Label>
             <Input
               id="edit-company"
               placeholder="Company name"
               {...register('company_name')}
             />
+            {errors.company_name && (
+              <p className="text-sm text-destructive">{errors.company_name.message}</p>
+            )}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="edit-address">Address</Label>
+          <Label htmlFor="edit-address">Address *</Label>
           <Input
             id="edit-address"
             placeholder="Street address"
             {...register('address')}
           />
+          {errors.address && (
+            <p className="text-sm text-destructive">{errors.address.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">

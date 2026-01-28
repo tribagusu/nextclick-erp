@@ -102,7 +102,7 @@ export function ClientFormDialog({ open, onOpenChange, onSuccess }: ClientFormDi
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dialog-email">Email</Label>
+            <Label htmlFor="dialog-email">Email *</Label>
             <Input
               id="dialog-email"
               type="email"
@@ -117,31 +117,40 @@ export function ClientFormDialog({ open, onOpenChange, onSuccess }: ClientFormDi
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="dialog-phone">Phone</Label>
+            <Label htmlFor="dialog-phone">Phone *</Label>
             <Input
               id="dialog-phone"
-              placeholder="+1 (555) 000-0000"
+              placeholder="+61 400 000 000"
               {...register('phone')}
             />
+            {errors.phone && (
+              <p className="text-sm text-destructive">{errors.phone.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="dialog-company">Company Name</Label>
+            <Label htmlFor="dialog-company">Company Name *</Label>
             <Input
               id="dialog-company"
               placeholder="Company name"
               {...register('company_name')}
             />
+            {errors.company_name && (
+              <p className="text-sm text-destructive">{errors.company_name.message}</p>
+            )}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="dialog-address">Address</Label>
+          <Label htmlFor="dialog-address">Address *</Label>
           <Input
             id="dialog-address"
             placeholder="Street address"
             {...register('address')}
           />
+          {errors.address && (
+            <p className="text-sm text-destructive">{errors.address.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">
