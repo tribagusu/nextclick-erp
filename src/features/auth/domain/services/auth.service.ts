@@ -5,7 +5,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, User } from '@/shared/types/database.types';
+import type { Database, User } from '@/shared/base-feature/domain/database.types';
 import type {
   LoginCredentials,
   RegisterData,

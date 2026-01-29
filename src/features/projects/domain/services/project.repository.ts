@@ -3,13 +3,13 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Project, Client } from '@/shared/types/database.types';
-import { BaseRepository } from '@/shared/lib/api/base-repository';
-import type { ProjectListParams, ProjectListResponse } from '../types';
+import type { Database, Project, Client } from '@/shared/base-feature/domain/database.types';
+import { BaseRepository } from '@/shared/base-feature/domain/base.repository';
+import type { ProjectCreateInput, ProjectListParams, ProjectListResponse, ProjectUpdateInput } from '../types';
 
-export class ProjectRepository extends BaseRepository<Project> {
-  constructor(client: SupabaseClient<Database>) {
-    super(client, 'projects');
+export class ProjectRepository extends BaseRepository<Project, ProjectCreateInput, ProjectUpdateInput> {
+  constructor(dbClient: SupabaseClient<Database>) {
+    super(dbClient, 'projects');
   }
 
   async findAllPaginated(params: ProjectListParams = {}): Promise<ProjectListResponse> {
@@ -26,7 +26,7 @@ export class ProjectRepository extends BaseRepository<Project> {
 
     const offset = (page - 1) * pageSize;
 
-    let query = this.client
+    let query = this.dbClient
       .from('projects')
       .select('*', { count: 'exact' })
       .is('deleted_at', null);
@@ -59,7 +59,7 @@ export class ProjectRepository extends BaseRepository<Project> {
   }
 
   async findByIdWithClient(id: string): Promise<(Project & { client_name: string }) | null> {
-    const { data: project, error } = await this.client
+    const { data: project, error } = await this.dbClient
       .from('projects')
       .select('*')
       .eq('id', id)
@@ -68,7 +68,7 @@ export class ProjectRepository extends BaseRepository<Project> {
 
     if (error || !project) return null;
 
-    const { data: clientData } = await this.client
+    const { data: clientData } = await this.dbClient
       .from('clients')
       .select('name')
       .eq('id', (project as Project).client_id)

@@ -5,13 +5,13 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Client } from '@/shared/types/database.types';
-import { BaseRepository } from '@/shared/lib/api/base-repository';
-import type { ClientListParams, ClientListResponse } from '../types';
+import type { Database, Client } from '@/shared/base-feature/domain/database.types';
+import { BaseRepository } from '@/shared/base-feature/domain/base.repository';
+import type { ClientListParams, ClientListResponse, ClientUpdateInput, ClientCreateInput } from '../types';
 
-export class ClientRepository extends BaseRepository<Client> {
-  constructor(client: SupabaseClient<Database>) {
-    super(client, 'clients');
+export class ClientRepository extends BaseRepository<Client, ClientCreateInput, ClientUpdateInput> {
+  constructor(dbClient: SupabaseClient<Database>) {
+    super(dbClient, 'clients');
   }
 
   /**
@@ -29,7 +29,7 @@ export class ClientRepository extends BaseRepository<Client> {
     const offset = (page - 1) * pageSize;
 
     // Build query
-    let query = this.client
+    let query = this.dbClient
       .from('clients')
       .select('*', { count: 'exact' })
       .is('deleted_at', null);
@@ -58,7 +58,7 @@ export class ClientRepository extends BaseRepository<Client> {
    * Search clients by name or email
    */
   async search(query: string, limit = 10): Promise<Client[]> {
-    const { data, error } = await this.client
+    const { data, error } = await this.dbClient
       .from('clients')
       .select('*')
       .is('deleted_at', null)
@@ -73,7 +73,7 @@ export class ClientRepository extends BaseRepository<Client> {
    * Get client with related projects count
    */
   async findByIdWithStats(id: string): Promise<Client & { projectCount: number } | null> {
-    const { data: client, error } = await this.client
+    const { data: client, error } = await this.dbClient
       .from('clients')
       .select('*')
       .eq('id', id)
@@ -83,7 +83,7 @@ export class ClientRepository extends BaseRepository<Client> {
     if (error || !client) return null;
 
     // Get project count
-    const { count } = await this.client
+    const { count } = await this.dbClient
       .from('projects')
       .select('*', { count: 'exact', head: true })
       .eq('client_id', id)

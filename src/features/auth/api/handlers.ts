@@ -12,7 +12,7 @@ import {
   validationErrorResponse,
   unauthorizedResponse,
   internalErrorResponse,
-} from '@/shared/lib/api/api-utils';
+} from '@/shared/base-feature/api/api-utils';
 
 /**
  * Handle sign in request

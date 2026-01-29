@@ -5,8 +5,9 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { CommunicationLog } from '@/shared/types/database.types';
-import type { CommunicationListParams, CommunicationListResponse, CommunicationCreateInput, CommunicationUpdateInput } from '../../domain/types';
+import type { CommunicationLog } from '@/shared/base-feature/domain/database.types';
+import type { CommunicationListParams, CommunicationCreateInput, CommunicationUpdateInput } from '../../domain/types';
+import { PaginatedResponse } from '@/shared/base-feature/domain/base.types';
 
 export const communicationKeys = {
   all: ['communications'] as const,
@@ -16,14 +17,14 @@ export const communicationKeys = {
   detail: (id: string) => [...communicationKeys.details(), id] as const,
 };
 
-async function fetchCommunications(params: CommunicationListParams): Promise<CommunicationListResponse> {
+async function fetchCommunications(params: CommunicationListParams): Promise<PaginatedResponse<CommunicationLog>> {
   const searchParams = new URLSearchParams();
   if (params.page) searchParams.set('page', String(params.page));
   if (params.pageSize) searchParams.set('pageSize', String(params.pageSize));
   if (params.search) searchParams.set('search', params.search);
   if (params.mode) searchParams.set('mode', params.mode);
-  if (params.clientId) searchParams.set('clientId', params.clientId);
-  if (params.projectId) searchParams.set('projectId', params.projectId);
+  if (params.client_id) searchParams.set('clientId', params.client_id);
+  if (params.project_id) searchParams.set('projectId', params.project_id);
   if (params.sortBy) searchParams.set('sortBy', params.sortBy);
   if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
