@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 
-import type { CommunicationMode } from '@/shared/types/database.types';
+import type { CommunicationMode } from '@/shared/base-feature/domain/database.types';
 
 interface CommunicationsToolbarProps {
   search: string;

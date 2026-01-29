@@ -33,7 +33,7 @@ import {
 import { useUpdateCommunication } from '../hooks/useCommunications';
 import { useClients } from '@/features/clients/ui/hooks/useClients';
 import { useProjects } from '@/features/projects/ui/hooks/useProjects';
-import type { CommunicationLog } from '@/shared/types/database.types';
+import type { CommunicationLog } from '@/shared/base-feature/domain/database.types';
 
 interface CommunicationEditDialogProps {
   open: boolean;

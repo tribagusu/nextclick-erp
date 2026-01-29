@@ -8,7 +8,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '../../../supabase/server';
 import { DashboardLayoutClient } from './DashboardLayoutClient';
-import type { User } from '@/shared/types/database.types';
+import type { User } from '@/shared/base-feature/domain/database.types';
 
 export default async function DashboardRouteLayout({
   children,

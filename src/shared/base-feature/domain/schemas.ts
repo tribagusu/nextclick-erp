@@ -1,0 +1,7 @@
+/**
+ * Base Feature - Common Validation Schemas
+ */
+
+import { z } from 'zod';
+
+export const uuidSchema = z.uuid('Invalid UUID format')
