@@ -6,8 +6,9 @@ import { Actions } from '@/shared/app.constants';
 import { AppError, ErrorCodes, errorResponse, forbiddenResponse, internalErrorResponse, UnauthorizedError, ValidationError } from '@/shared/base-feature/api/api-utils';
 import { GetAllParams } from '@/shared/base-feature/domain/base.types';
 import { uuidSchema } from '@/shared/base-feature/domain/schemas';
-import { ZodObject } from 'zod';
+import { ZodError, ZodObject } from 'zod';
 import { createClient } from '../../../../supabase/server';
+import { $ZodIssue } from 'zod/v4/core';
 
 export async function handleGetAll(request: Request) {
   const dbClient = await validateAuthentication();
@@ -17,11 +18,11 @@ export async function handleGetAll(request: Request) {
 
 export async function handleGet(request: Request, resource: string, id: string) {
   const dbClient = await validateAuthentication();
-  const input = uuidSchema.safeParse(id);
+  const input = uuidSchema.safeParse({ id });
   if (!input.success) {
     throw new ValidationError(resource, Actions.READ, input.error)
   }
-  return { dbClient, input: input.data }
+  return { dbClient, input: input.data.id }
 }
 
 export async function handleCreate(request: Request, resource: string, validationSchema: ZodObject) {
@@ -33,22 +34,31 @@ export async function handleCreate(request: Request, resource: string, validatio
   return { dbClient, input: input.data }
 }
 
-export async function handleUpdate(request: Request, resource: string, validationSchema: ZodObject) {
+export async function handleUpdate(request: Request, id: string, resource: string, validationSchema: ZodObject) {
   const dbClient = await validateAuthentication();
+  const idParam = uuidSchema.safeParse({ id });
   const input = validationSchema.partial().safeParse(await request.json());
+
+  const error: $ZodIssue[] = [];
+  if (!idParam.success) {
+    error.push(...idParam.error.issues)
+  }
   if (!input.success) {
-    throw new ValidationError(resource, Actions.UPDATE, input.error)
+    error.push(...input.error.issues)
+  }
+  if (error.length > 0) {
+    throw new ValidationError(resource, Actions.UPDATE, new ZodError(error))
   }
   return { dbClient, input: input.data }
 }
 
 export async function handleDelete(request: Request, resource: string, id: string) {
   const dbClient = await validateAuthentication();
-  const input = uuidSchema.safeParse(id);
+  const input = uuidSchema.safeParse({ id });
   if (!input.success) {
     throw new ValidationError(resource, Actions.DELETE, input.error)
   }
-  return { dbClient, input: input.data }
+  return { dbClient, input: input.data.id }
 }
 
 async function validateAuthentication() {

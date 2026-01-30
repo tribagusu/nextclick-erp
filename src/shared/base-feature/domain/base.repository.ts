@@ -9,7 +9,6 @@
  * stricter typing as needed.
  */
 
-import { GetAllParams, PaginatedResponse } from '@/shared/base-feature/domain/base.types';
 import type { BaseEntity, Database, TableName } from '@/shared/base-feature/domain/database.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
@@ -122,8 +121,8 @@ export abstract class BaseRepository<TRow extends BaseEntity, CreateInput, Updat
     if (error) throw error;
     return data as TRow;
   }
-
-  abstract findAllPaginated(params: GetAllParams): Promise<PaginatedResponse<TRow>>;
+  // TODO: ONCE BASE FEATURE IS APPLIED TO ALL MODULES, UNCOMMENT
+  // abstract findAllPaginated(params: GetAllParams): Promise<PaginatedResponse<TRow>>;
 }
 
 

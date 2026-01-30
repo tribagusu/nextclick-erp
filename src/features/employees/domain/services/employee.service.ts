@@ -5,7 +5,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Employee } from '@/shared/types/database.types';
+import type { Database, Employee } from '@/shared/base-feature/domain/database.types';
 import { EmployeeRepository } from './employee.repository';
 import type { EmployeeListParams, EmployeeListResponse, EmployeeCreateInput, EmployeeUpdateInput } from '../types';
 import { employeeFormSchema, transformEmployeeInput } from '../schemas';

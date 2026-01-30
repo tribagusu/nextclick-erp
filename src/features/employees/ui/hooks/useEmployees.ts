@@ -5,7 +5,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Employee } from '@/shared/types/database.types';
+import type { Employee } from '@/shared/base-feature/domain/database.types';
 import type { EmployeeListParams, EmployeeListResponse, EmployeeCreateInput, EmployeeUpdateInput } from '../../domain/types';
 
 export const employeeKeys = {

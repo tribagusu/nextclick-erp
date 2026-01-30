@@ -2,130 +2,101 @@
  * Communications API Handlers
  */
 
-import { createClient } from '../../../../supabase/server';
-import { CommunicationService } from '../domain/services/communication.service';
+import { CommunicationRepository } from '@/features/communications/domain/services/communication.repository';
+import { CommunicationListParams } from '@/features/communications/domain/types';
+import { Actions, Resources } from '@/shared/app.constants';
 import {
-  successResponse,
-  validationErrorResponse,
-  unauthorizedResponse,
-  notFoundResponse,
-  internalErrorResponse,
-  UnauthorizedError,
-  ValidationError,
-  handleApiError,
-} from '@/shared/lib/api/api-utils';
-import type { CommunicationMode } from '@/shared/types/database.types';
+  NotFoundError,
+  successResponse
+} from '@/shared/base-feature/api/api-utils';
+import { handleApiError, handleCreate, handleDelete, handleGet, handleGetAll, handleUpdate } from '@/shared/base-feature/api/base.handlers';
+import type { CommunicationLog, CommunicationMode } from '@/shared/base-feature/domain/database.types';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { communicationApiSchema } from '../domain/schemas';
-import { Actions, Resources } from '@/shared/lib/app.constants';
+import { CommunicationService } from '../domain/services/communication.service';
 
 export async function handleGetCommunications(request: Request) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
+    const { dbClient, baseGetAllParams } = await handleGetAll(request);
 
     const url = new URL(request.url);
-    const params = {
-      page: parseInt(url.searchParams.get('page') ?? '1'),
-      pageSize: parseInt(url.searchParams.get('pageSize') ?? '10'),
-      search: url.searchParams.get('search') ?? undefined,
+    const filterParams: CommunicationListParams = {
       mode: (url.searchParams.get('mode') as CommunicationMode) ?? undefined,
-      clientId: url.searchParams.get('clientId') ?? undefined,
-      projectId: url.searchParams.get('projectId') ?? undefined,
-      followUpRequired: url.searchParams.get('followUpRequired') === 'true' ? true : undefined,
-      sortBy: (url.searchParams.get('sortBy') as 'date' | 'created_at') ?? 'date',
-      sortOrder: (url.searchParams.get('sortOrder') as 'asc' | 'desc') ?? 'desc',
+      client_id: url.searchParams.get('clientId') ?? undefined,
+      project_id: url.searchParams.get('projectId') ?? undefined,
+      follow_up_required: url.searchParams.get('followUpRequired') === 'true' ? true : undefined,
+      sortBy: (url.searchParams.get('sortBy') as keyof CommunicationLog) ?? 'date',
     };
 
-    const service = new CommunicationService(supabase);
-    const data = await service.getCommunications(params);
-    return successResponse(data);
+    const service = createCommunicationService(dbClient);
+    const { data, ...paginationDetails} = await service.getCommunications({ ...baseGetAllParams, ...filterParams });
+
+    return successResponse<CommunicationLog[]>(data, paginationDetails);
   } catch (error) {
-    console.error('Get communications error:', error);
-    return internalErrorResponse();
+    return handleApiError(error, Resources.COMMUNICATION_LOG, Actions.READ);
   }
 }
 
 export async function handleGetCommunication(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
-
     const { id } = await params;
-    const service = new CommunicationService(supabase);
-    const communication = await service.getCommunication(id);
+    const { dbClient, input } = await handleGet(request, Resources.COMMUNICATION_LOG, id);
 
-    if (!communication) return notFoundResponse('Communication log');
+    const service = createCommunicationService(dbClient);
+    const communication = await service.getCommunication(input);
+
+    if (!communication) throw new NotFoundError(Resources.COMMUNICATION_LOG);
+
     return successResponse(communication);
   } catch (error) {
-    console.error('Get communication error:', error);
-    return internalErrorResponse();
-  }
-}
-
-export async function handleUpdateCommunication(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
-
-    const { id } = await params;
-    const body = await request.json();
-    const service = new CommunicationService(supabase);
-    const result = await service.updateCommunication(id, body);
-
-    if (!result.success) {
-      return validationErrorResponse(result.error || 'Failed to update communication log');
-    }
-    return successResponse(result.communication);
-  } catch (error) {
-    console.error('Update communication error:', error);
-    return internalErrorResponse();
-  }
-}
-
-export async function handleDeleteCommunication(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
-
-    const { id } = await params;
-    const service = new CommunicationService(supabase);
-    const result = await service.deleteCommunication(id);
-
-    if (!result.success) {
-      return validationErrorResponse(result.error || 'Failed to delete communication log');
-    }
-    return successResponse({ message: 'Communication log deleted successfully' });
-  } catch (error) {
-    console.error('Delete communication error:', error);
-    return internalErrorResponse();
+    return handleApiError(error, Resources.COMMUNICATION_LOG, Actions.READ);
   }
 }
 
 export async function handleCreateCommunication(request: Request) {
   try {
-    const { service, input } = await validateAndGetContext(request);
-    const communication = await service.createCommunication(input.data);
+    const { dbClient, input } = await handleCreate(request, Resources.COMMUNICATION_LOG, communicationApiSchema);
+
+    const service = createCommunicationService(dbClient);
+    const communication = await service.create(input);
+
     return successResponse(communication, undefined, 201);
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error, Resources.COMMUNICATION_LOG, Actions.CREATE);
   }
 }
 
-async function validateAndGetContext(request: Request) {
-    const dbClient = await createClient();
-    const { data: { user } } = await dbClient.auth.getUser();
-    
-    if (!user) throw new UnauthorizedError();
+export async function handleUpdateCommunication(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const { dbClient, input } = await handleUpdate(request, id, Resources.COMMUNICATION_LOG, communicationApiSchema);
 
-    const input = communicationApiSchema.safeParse(await request.json());
-    if (!input.success) {
-      throw new ValidationError(Resources.COMMUNICATION_LOG, Actions.CREATE,input.error)
+    let communication = null;
+    if (input) {
+      const service = createCommunicationService(dbClient);
+      communication = await service.update(id, input);
     }
 
-    const service = new CommunicationService(dbClient);
-  return { service, input }
+    return successResponse(communication);
+  } catch (error) {
+    return handleApiError(error, Resources.COMMUNICATION_LOG, Actions.UPDATE);
+  }
+}
+
+export async function handleDeleteCommunication(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const { dbClient, input } = await handleDelete(request, Resources.COMMUNICATION_LOG, id);
+
+    const service = createCommunicationService(dbClient);
+    await service.delete(input)
+
+    return successResponse({ message: `${Resources.COMMUNICATION_LOG} deleted successfully` });
+  } catch (error) {
+    return handleApiError(error, Resources.COMMUNICATION_LOG, Actions.DELETE);
+  }
+}
+
+function createCommunicationService(dbClient: SupabaseClient) {
+  return new CommunicationService(new CommunicationRepository(dbClient));
 }

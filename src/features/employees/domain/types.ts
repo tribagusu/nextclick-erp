@@ -4,7 +4,7 @@
  * Type definitions for employee operations.
  */
 
-import type { Employee, EmployeeStatus } from '@/shared/types/database.types';
+import type { Employee, EmployeeStatus } from '@/shared/base-feature/domain/database.types';
 
 // =============================================================================
 // EMPLOYEE DTOS

@@ -2,53 +2,23 @@
  * Communication Service
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, CommunicationLog } from '@/shared/types/database.types';
+import { BaseService } from '@/shared/base-feature/domain/base.service';
+import type { CommunicationLog } from '@/shared/base-feature/domain/database.types';
+import type { CommunicationCreateInput, CommunicationListParams, CommunicationUpdateInput } from '../types';
 import { CommunicationRepository } from './communication.repository';
-import type { CommunicationListParams, CommunicationListResponse, CommunicationUpdateInput } from '../types';
-import { communicationApiSchema } from '../schemas';
+import { PaginatedResponse } from '@/shared/base-feature/domain/base.types';
 
-export class CommunicationService {
-  private repository: CommunicationRepository;
+export class CommunicationService extends BaseService<CommunicationLog, CommunicationCreateInput, CommunicationUpdateInput> {
 
-  constructor(client: SupabaseClient<Database>) {
-    this.repository = new CommunicationRepository(client);
-  }
-
-  async getCommunications(params: CommunicationListParams): Promise<CommunicationListResponse> {
-    return this.repository.findAllPaginated(params);
+  constructor(private communicationRepo: CommunicationRepository) {
+    super(communicationRepo)
   }
 
   async getCommunication(id: string) {
-    return this.repository.findByIdWithRelations(id);
+    return this.communicationRepo.findByIdWithRelations(id);
   }
 
-  async createCommunication(input: Partial<CommunicationLog>): Promise<CommunicationLog> {
-      return await this.repository.create(input);
-  }
-
-  async updateCommunication(id: string, input: CommunicationUpdateInput): Promise<{ success: boolean; communication?: CommunicationLog; error?: string }> {
-    const result = communicationApiSchema.partial().safeParse(input);
-    if (!result.success) {
-      return { success: false, error: result.error.issues[0].message };
-    }
-
-    try {
-      const communication = await this.repository.update(id, result.data as Partial<CommunicationLog>);
-      return { success: true, communication };
-    } catch (error) {
-      console.error('Update communication error:', error);
-      return { success: false, error: 'Failed to update communication log' };
-    }
-  }
-
-  async deleteCommunication(id: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      await this.repository.softDelete(id);
-      return { success: true };
-    } catch (error) {
-      console.error('Delete communication error:', error);
-      return { success: false, error: 'Failed to delete communication log' };
-    }
+  async getCommunications(params: CommunicationListParams): Promise<PaginatedResponse<CommunicationLog>> {
+    return this.communicationRepo.findAllPaginated(params);
   }
 }
