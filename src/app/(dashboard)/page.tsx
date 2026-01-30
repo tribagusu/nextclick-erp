@@ -6,21 +6,12 @@
 
 'use client';
 
-import {
-  Users,
-  FolderKanban,
-  CheckCircle,
-  UserCog,
-  Milestone,
-  MessageSquare,
-  DollarSign,
-  AlertCircle,
-} from 'lucide-react';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
+import { AlertCircle } from 'lucide-react';
 
 import { useDashboard } from '@/features/dashboard/ui/hooks/useDashboard';
-import { MetricsCard } from '@/features/dashboard/ui/components/MetricsCard';
+import { DashboardMetrics } from '@/features/dashboard/ui/components/DashboardMetrics';
 import { ProjectsOverview } from '@/features/dashboard/ui/components/ProjectsOverview';
 import { RecentActivityList } from '@/features/dashboard/ui/components/RecentActivityList';
 
@@ -49,27 +40,9 @@ export default function DashboardPage() {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="lg:p-6 space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back!</p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <Skeleton className="h-64 col-span-2" />
-          <Skeleton className="h-64" />
-        </div>
-      </div>
-    );
-  }
-
-  const { metrics, recentProjects, recentActivity } = data!;
+  const metrics = data?.metrics;
+  const recentProjects = data?.recentProjects ?? [];
+  const recentActivity = data?.recentActivity ?? [];
 
   return (
     <div className="lg:p-6 space-y-6">
@@ -78,57 +51,24 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Overview of your business metrics</p>
       </div>
 
-      {/* Metrics Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricsCard
-          title="Total Clients"
-          value={metrics.totalClients}
-          icon={Users}
-        />
-        <MetricsCard
-          title="Active Projects"
-          value={metrics.activeProjects}
-          icon={FolderKanban}
-        />
-        <MetricsCard
-          title="Completed Projects"
-          value={metrics.completedProjects}
-          icon={CheckCircle}
-        />
-        <MetricsCard
-          title="Team Members"
-          value={metrics.totalEmployees}
-          icon={UserCog}
-        />
-        <MetricsCard
-          title="Pending Milestones"
-          value={metrics.pendingMilestones}
-          icon={Milestone}
-        />
-        <MetricsCard
-          title="Recent Communications"
-          value={metrics.recentCommunications}
-          description="Last 7 days"
-          icon={MessageSquare}
-        />
-        <MetricsCard
-          title="Total Revenue"
-          value={formatCurrency(metrics.totalRevenue)}
-          icon={DollarSign}
-        />
-        <MetricsCard
-          title="Outstanding"
-          value={formatCurrency(metrics.outstandingPayments)}
-          icon={AlertCircle}
-        />
-      </div>
+      {/* Metrics Grid with structural placeholders */}
+      <DashboardMetrics metrics={metrics} isLoading={isLoading} />
 
       {/* Projects and Activity */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <div className="col-span-2">
-          <ProjectsOverview projects={recentProjects} />
-        </div>
-        <RecentActivityList activities={recentActivity} />
+        {isLoading ? (
+          <>
+            <Skeleton className="col-span-2 h-64" />
+            <Skeleton className="h-64" />
+          </>
+        ) : (
+          <>
+            <div className="col-span-2">
+              <ProjectsOverview projects={recentProjects} />
+            </div>
+            <RecentActivityList activities={recentActivity} />
+          </>
+        )}
       </div>
     </div>
   );
