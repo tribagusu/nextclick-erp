@@ -23,19 +23,8 @@ export class CommunicationService {
     return this.repository.findByIdWithRelations(id);
   }
 
-  async createCommunication(input: CommunicationCreateInput): Promise<{ success: boolean; communication?: CommunicationLog; error?: string }> {
-    const result = communicationApiSchema.safeParse(input);
-    if (!result.success) {
-      return { success: false, error: result.error.issues[0].message };
-    }
-
-    try {
-      const communication = await this.repository.create(result.data as Partial<CommunicationLog>);
-      return { success: true, communication };
-    } catch (error) {
-      console.error('Create communication error:', error);
-      return { success: false, error: 'Failed to create communication log' };
-    }
+  async createCommunication(input: Partial<CommunicationLog>): Promise<CommunicationLog> {
+      return await this.repository.create(input);
   }
 
   async updateCommunication(id: string, input: CommunicationUpdateInput): Promise<{ success: boolean; communication?: CommunicationLog; error?: string }> {

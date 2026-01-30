@@ -10,8 +10,13 @@ import {
   unauthorizedResponse,
   notFoundResponse,
   internalErrorResponse,
+  UnauthorizedError,
+  ValidationError,
+  handleApiError,
 } from '@/shared/lib/api/api-utils';
 import type { CommunicationMode } from '@/shared/types/database.types';
+import { communicationApiSchema } from '../domain/schemas';
+import { Actions, Resources } from '@/shared/lib/app.constants';
 
 export async function handleGetCommunications(request: Request) {
   try {
@@ -59,26 +64,6 @@ export async function handleGetCommunication(request: Request, { params }: { par
   }
 }
 
-export async function handleCreateCommunication(request: Request) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
-
-    const body = await request.json();
-    const service = new CommunicationService(supabase);
-    const result = await service.createCommunication(body);
-
-    if (!result.success) {
-      return validationErrorResponse(result.error || 'Failed to create communication log');
-    }
-    return successResponse(result.communication, undefined, 201);
-  } catch (error) {
-    console.error('Create communication error:', error);
-    return internalErrorResponse();
-  }
-}
-
 export async function handleUpdateCommunication(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const supabase = await createClient();
@@ -118,4 +103,29 @@ export async function handleDeleteCommunication(request: Request, { params }: { 
     console.error('Delete communication error:', error);
     return internalErrorResponse();
   }
+}
+
+export async function handleCreateCommunication(request: Request) {
+  try {
+    const { service, input } = await validateAndGetContext(request);
+    const communication = await service.createCommunication(input.data);
+    return successResponse(communication, undefined, 201);
+  } catch (error) {
+    return handleApiError(error);
+  }
+}
+
+async function validateAndGetContext(request: Request) {
+    const dbClient = await createClient();
+    const { data: { user } } = await dbClient.auth.getUser();
+    
+    if (!user) throw new UnauthorizedError();
+
+    const input = communicationApiSchema.safeParse(await request.json());
+    if (!input.success) {
+      throw new ValidationError(Resources.COMMUNICATION_LOG, Actions.CREATE,input.error)
+    }
+
+    const service = new CommunicationService(dbClient);
+  return { service, input }
 }
