@@ -29,7 +29,7 @@ export class CommunicationRepository extends BaseRepository<CommunicationLog> {
 
     let query = this.client
       .from('communication_logs')
-      .select('*', { count: 'exact' })
+      .select('*, clients!inner(name)', { count: 'exact' })
       .is('deleted_at', null);
 
     if (search) {
@@ -54,8 +54,17 @@ export class CommunicationRepository extends BaseRepository<CommunicationLog> {
 
     if (error) throw error;
 
+    // Transform the data to include client_name at the top level
+    const communications = (data ?? []).map((item) => {
+      const { clients, ...rest } = item as CommunicationLog & { clients: { name: string } };
+      return {
+        ...rest,
+        client_name: clients?.name ?? 'Unknown',
+      };
+    });
+
     return {
-      communications: (data ?? []) as CommunicationLog[],
+      communications,
       total: count ?? 0,
       page,
       pageSize,
