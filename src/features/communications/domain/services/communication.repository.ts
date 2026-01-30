@@ -3,32 +3,34 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, CommunicationLog, CommunicationMode, Client, Project } from '@/shared/types/database.types';
-import { BaseRepository } from '@/shared/lib/api/base-repository';
-import type { CommunicationListParams, CommunicationListResponse } from '../types';
+import type { Database, CommunicationLog, Client, Project } from '@/shared/base-feature/domain/database.types';
+import { BaseRepository } from '@/shared/base-feature/domain/base.repository';
+import type { CommunicationCreateInput, CommunicationListParams, CommunicationUpdateInput } from '../types';
+import { PaginatedResponse } from '@/shared/base-feature/domain/base.types';
+import { TableNames } from '@/shared/app.constants';
 
-export class CommunicationRepository extends BaseRepository<CommunicationLog> {
-  constructor(client: SupabaseClient<Database>) {
-    super(client, 'communication_logs');
+export class CommunicationRepository extends BaseRepository<CommunicationLog, CommunicationCreateInput, CommunicationUpdateInput> {
+  constructor(dbClient: SupabaseClient<Database>) {
+    super(dbClient, TableNames.COMMUNICATION_LOG);
   }
 
-  async findAllPaginated(params: CommunicationListParams = {}): Promise<CommunicationListResponse> {
+  async findAllPaginated(params: CommunicationListParams = {}): Promise<PaginatedResponse<CommunicationLog>> {
     const {
       page = 1,
       pageSize = 10,
       search,
       mode,
-      clientId,
-      projectId,
-      followUpRequired,
+      client_id,
+      project_id,
+      follow_up_required,
       sortBy = 'date',
       sortOrder = 'desc',
     } = params;
 
     const offset = (page - 1) * pageSize;
 
-    let query = this.client
-      .from('communication_logs')
+    let query = this.dbClient
+      .from(TableNames.COMMUNICATION_LOG)
       .select('*, clients!inner(name)', { count: 'exact' })
       .is('deleted_at', null);
 
@@ -38,14 +40,14 @@ export class CommunicationRepository extends BaseRepository<CommunicationLog> {
     if (mode) {
       query = query.eq('mode', mode);
     }
-    if (clientId) {
-      query = query.eq('client_id', clientId);
+    if (client_id) {
+      query = query.eq('client_id', client_id);
     }
-    if (projectId) {
-      query = query.eq('project_id', projectId);
+    if (project_id) {
+      query = query.eq('project_id', project_id);
     }
-    if (followUpRequired !== undefined) {
-      query = query.eq('follow_up_required', followUpRequired);
+    if (follow_up_required !== undefined) {
+      query = query.eq('follow_up_required', follow_up_required);
     }
 
     const { data, count, error } = await query
@@ -64,7 +66,7 @@ export class CommunicationRepository extends BaseRepository<CommunicationLog> {
     });
 
     return {
-      communications,
+      data: communications,
       total: count ?? 0,
       page,
       pageSize,
@@ -72,8 +74,8 @@ export class CommunicationRepository extends BaseRepository<CommunicationLog> {
   }
 
   async findByIdWithRelations(id: string): Promise<(CommunicationLog & { client_name: string; project_name: string | null }) | null> {
-    const { data: log, error } = await this.client
-      .from('communication_logs')
+    const { data: log, error } = await this.dbClient
+      .from(TableNames.COMMUNICATION_LOG)
       .select('*')
       .eq('id', id)
       .is('deleted_at', null)
@@ -82,8 +84,8 @@ export class CommunicationRepository extends BaseRepository<CommunicationLog> {
     if (error || !log) return null;
 
     const logData = log as CommunicationLog;
-    
-    const { data: clientData } = await this.client
+
+    const { data: clientData } = await this.dbClient
       .from('clients')
       .select('name')
       .eq('id', logData.client_id)
@@ -91,7 +93,7 @@ export class CommunicationRepository extends BaseRepository<CommunicationLog> {
 
     let projectName: string | null = null;
     if (logData.project_id) {
-      const { data: projectData } = await this.client
+      const { data: projectData } = await this.dbClient
         .from('projects')
         .select('project_name')
         .eq('id', logData.project_id)

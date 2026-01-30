@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/shared/components/layout/DashboardLayout';
 import { useSignOut } from '@/features/auth/ui/hooks/useAuth';
-import type { UserRole } from '@/shared/types/database.types';
+import type { UserRole } from '@/shared/base-feature/domain/database.types';
 
 interface DashboardLayoutClientProps {
   children: React.ReactNode;

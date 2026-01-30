@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import type { Project, ProjectStatus } from '@/shared/types/database.types';
+import type { Project, ProjectStatus } from '@/shared/base-feature/domain/database.types';
 import { useProjects, useDeleteProject } from '../hooks/useProjects';
 import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 

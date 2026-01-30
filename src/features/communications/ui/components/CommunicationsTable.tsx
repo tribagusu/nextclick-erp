@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import type { CommunicationLog, CommunicationMode } from '@/shared/types/database.types';
+import type { CommunicationLog, CommunicationMode } from '@/shared/base-feature/domain/database.types';
 import { useCommunications, useDeleteCommunication } from '../hooks/useCommunications';
 import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 

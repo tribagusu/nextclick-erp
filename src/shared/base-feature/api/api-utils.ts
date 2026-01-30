@@ -93,7 +93,7 @@ export function errorResponse(
 }
 
 // =============================================================================
-// COMMON ERROR RESPONSES
+// COMMON ERRORS
 // =============================================================================
 
 export abstract class AppError extends Error {
@@ -132,17 +132,15 @@ export class UnauthorizedError extends AppError {
   }
 }
 
-// =============================================================================
-// Global Exception Handler
-// =============================================================================
-export function handleApiError(error: unknown): Response {
-  console.error('Create communication error:', error);
-  if (error instanceof AppError) {
-    return error.getErrorResponse();
+export class NotFoundError extends AppError {
+  readonly statusCode = 404;
+  constructor(resource: string) {
+    super(`${resource} not found`);
   }
-  return internalErrorResponse();
+  getErrorResponse() {
+    return errorResponse(ErrorCodes.NOT_FOUND, this.message, this.statusCode);
+  }
 }
-
 
 // =============================================================================
 // COMMON ERROR RESPONSES
@@ -170,43 +168,4 @@ export function conflictResponse(message: string) {
 
 export function internalErrorResponse(message = 'An unexpected error occurred') {
   return errorResponse(ErrorCodes.INTERNAL_ERROR, message, 500);
-}
-
-/**
- * Handle database errors with appropriate status codes
- */
-export function handleDatabaseError(error: unknown): NextResponse<ApiError> {
-  console.error('[Database Error]', error);
-
-  const err = error as { code?: string; message?: string };
-
-  // Foreign key violation
-  if (err.code === '23503') {
-    return errorResponse(
-      ErrorCodes.CONFLICT,
-      'Referenced record does not exist',
-      409
-    );
-  }
-
-  // Unique constraint violation
-  if (err.code === '23505') {
-    return errorResponse(
-      ErrorCodes.CONFLICT,
-      'Record already exists',
-      409
-    );
-  }
-
-  // RLS policy violation
-  if (err.code === '42501') {
-    return forbiddenResponse();
-  }
-
-  // Generic database error
-  return errorResponse(
-    ErrorCodes.DATABASE_ERROR,
-    'Database operation failed',
-    500
-  );
 }

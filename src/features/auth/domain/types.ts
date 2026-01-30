@@ -4,7 +4,7 @@
  * Type definitions for authentication operations.
  */
 
-import type { User, UserRole } from '@/shared/types/database.types';
+import type { User, UserRole } from '@/shared/base-feature/domain/database.types';
 
 // =============================================================================
 // AUTH STATE

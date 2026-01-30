@@ -24,7 +24,7 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 
-import type { CommunicationLog, CommunicationMode } from '@/shared/types/database.types';
+import type { CommunicationLog, CommunicationMode } from '@/shared/base-feature/domain/database.types';
 
 const modeIcons: Record<CommunicationMode, React.ReactNode> = {
   email: <Mail className="h-4 w-4" />,

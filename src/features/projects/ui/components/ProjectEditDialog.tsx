@@ -34,7 +34,7 @@ import {
 } from '../../domain/schemas';
 import { useUpdateProject } from '../hooks/useProjects';
 import { useClients } from '@/features/clients/ui/hooks/useClients';
-import type { Project } from '@/shared/types/database.types';
+import type { Project } from '@/shared/base-feature/domain/database.types';
 
 interface ProjectEditDialogProps {
   open: boolean;

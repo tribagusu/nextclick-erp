@@ -20,7 +20,7 @@ import { useDeleteMilestone } from '../hooks/useMilestones';
 import { useMilestoneEmployees } from '../hooks/useMilestoneEmployees';
 import { MilestoneAssignmentDialog } from './MilestoneAssignmentDialog';
 import { MilestoneFormDialog } from './MilestoneFormDialog';
-import type { ProjectMilestone } from '@/shared/types/database.types';
+import type { ProjectMilestone } from '@/shared/base-feature/domain/database.types';
 
 interface MilestoneCardProps {
   milestone: ProjectMilestone;

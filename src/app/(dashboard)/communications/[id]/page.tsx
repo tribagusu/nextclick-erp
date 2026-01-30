@@ -15,7 +15,7 @@ import { Badge } from '@/shared/components/ui/badge';
 
 import { useCommunication } from '@/features/communications/ui/hooks/useCommunications';
 import { CommunicationEditDialog } from '@/features/communications/ui/components/CommunicationEditDialog';
-import type { CommunicationMode } from '@/shared/types/database.types';
+import type { CommunicationMode } from '@/shared/base-feature/domain/database.types';
 
 const modeIcons: Record<CommunicationMode, React.ReactNode> = {
   email: <Mail className="h-4 w-4" />,

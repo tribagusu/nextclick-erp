@@ -36,7 +36,7 @@ import {
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 
-import type { Employee, EmployeeStatus } from '@/shared/types/database.types';
+import type { Employee, EmployeeStatus } from '@/shared/base-feature/domain/database.types';
 import { useEmployees, useDeleteEmployee } from '../hooks/useEmployees';
 
 const statusColors: Record<EmployeeStatus, string> = {

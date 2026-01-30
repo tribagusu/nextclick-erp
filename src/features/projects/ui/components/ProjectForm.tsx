@@ -23,7 +23,7 @@ import {
 } from '@/shared/components/ui/select';
 
 import { projectFormSchema, projectStatusOptions, projectPriorityOptions, type ProjectFormData, transformProjectInput } from '../../domain/schemas';
-import type { Project } from '@/shared/types/database.types';
+import type { Project } from '@/shared/base-feature/domain/database.types';
 
 interface ProjectFormProps {
   defaultValues?: Partial<Project>;

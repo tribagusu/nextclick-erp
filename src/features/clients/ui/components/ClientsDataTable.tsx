@@ -25,7 +25,7 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 
-import type { Client } from '@/shared/types/database.types';
+import type { Client } from '@/shared/base-feature/domain/database.types';
 
 interface ClientsDataTableProps {
   clients: Client[];

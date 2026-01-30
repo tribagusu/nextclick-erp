@@ -25,7 +25,7 @@ import { MilestoneCard } from './MilestoneCard';
 import { MilestoneProgress } from './MilestoneProgress';
 import { MilestoneFormDialog } from './MilestoneFormDialog';
 import { useCurrentEmployee } from '@/features/employees/ui/hooks/useEmployees';
-import type { MilestoneStatus } from '@/shared/types/database.types';
+import type { MilestoneStatus } from '@/shared/base-feature/domain/database.types';
 
 interface MilestonesTabProps {
   projectId: string;

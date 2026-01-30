@@ -36,7 +36,7 @@ import {
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 
-import type { ProjectMilestone, MilestoneStatus } from '@/shared/types/database.types';
+import type { ProjectMilestone, MilestoneStatus } from '@/shared/base-feature/domain/database.types';
 import { useMilestones, useDeleteMilestone } from '../hooks/useMilestones';
 
 const statusColors: Record<MilestoneStatus, string> = {

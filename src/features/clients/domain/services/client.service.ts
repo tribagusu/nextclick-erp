@@ -5,7 +5,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Client } from '@/shared/types/database.types';
+import type { Database, Client } from '@/shared/base-feature/domain/database.types';
 import { ClientRepository } from './client.repository';
 import type { ClientListParams, ClientListResponse, ClientCreateInput, ClientUpdateInput } from '../types';
 import { clientApiSchema } from '../schemas';

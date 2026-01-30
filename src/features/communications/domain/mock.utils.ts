@@ -6,11 +6,11 @@ import { communicationModeOptions } from "@/features/communications/domain/schem
 
 export function getValidCommunicationMock() {
   return {
-    id: 'comm-1',
+    id: crypto.randomUUID(),
     client_id: 'client-1',
     project_id: null,
     date: '2024-01-15',
-    mode: communicationModeOptions[Math.floor(Math.random() * communicationModeOptions.length)] ,
+    mode: communicationModeOptions[0],
     summary: 'Discussed project requirements and timeline',
     follow_up_required: true,
     follow_up_date: '2024-01-22',
@@ -24,7 +24,7 @@ export function getInvalidCommunicationMock() {
   return {
     client_id: '',
     date: '',
-    mode: 'invalid' ,
+    mode: 'invalid',
     summary: 'too short',
     follow_up_required: 0,
   };
