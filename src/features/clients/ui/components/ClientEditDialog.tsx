@@ -21,6 +21,7 @@ import { FormDialog } from '@/shared/components/ui/form-dialog';
 
 import { clientSchema, type ClientFormData, transformClientInput } from '../../domain/schemas';
 import { useUpdateClient } from '../hooks/useClients';
+import { sanitizeFormData } from '@/shared/utils/sanitize';
 import type { Client } from '@/shared/types/database.types';
 
 interface ClientEditDialogProps {
@@ -70,7 +71,8 @@ export function ClientEditDialog({ open, onOpenChange, client, onSuccess }: Clie
     
     setError(null);
     try {
-      const transformed = transformClientInput(data);
+      const sanitized = sanitizeFormData(data);
+      const transformed = transformClientInput(sanitized);
       await updateMutation.mutateAsync({ id: client.id, ...transformed });
       toast.success('Client updated successfully');
       onOpenChange(false);

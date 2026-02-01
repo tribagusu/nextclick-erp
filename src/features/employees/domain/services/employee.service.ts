@@ -8,7 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Employee } from '@/shared/types/database.types';
 import { EmployeeRepository } from './employee.repository';
 import type { EmployeeListParams, EmployeeListResponse, EmployeeCreateInput, EmployeeUpdateInput } from '../types';
-import { employeeFormSchema, transformEmployeeInput } from '../schemas';
+import { employeeApiSchema, employeeUpdateSchema } from '../schemas';
 
 export class EmployeeService {
   private repository: EmployeeRepository;
@@ -49,14 +49,15 @@ export class EmployeeService {
    * Create a new employee
    */
   async createEmployee(input: EmployeeCreateInput): Promise<{ success: boolean; employee?: Employee; error?: string }> {
-    const result = employeeFormSchema.safeParse(input);
+    // Use API schema that accepts null values from transformed frontend data
+    const result = employeeApiSchema.safeParse(input);
     if (!result.success) {
+      console.error('Employee validation failed:', result.error.issues);
       return { success: false, error: result.error.issues[0].message };
     }
 
     try {
-      const data = transformEmployeeInput(result.data);
-      const employee = await this.repository.create(data);
+      const employee = await this.repository.create(result.data as Partial<Employee>);
       return { success: true, employee };
     } catch (error) {
       console.error('Create employee error:', error);
@@ -68,19 +69,15 @@ export class EmployeeService {
    * Update an existing employee
    */
   async updateEmployee(id: string, input: EmployeeUpdateInput): Promise<{ success: boolean; employee?: Employee; error?: string }> {
-    const result = employeeFormSchema.partial().safeParse(input);
+    // Use update schema that accepts null values
+    const result = employeeUpdateSchema.safeParse(input);
     if (!result.success) {
+      console.error('Employee validation failed:', result.error.issues);
       return { success: false, error: result.error.issues[0].message };
     }
 
     try {
-      // Transform and filter out undefined values
-      const data = transformEmployeeInput({
-        name: result.data.name ?? '',
-        ...result.data,
-      });
-      
-      const employee = await this.repository.update(id, data as Partial<Employee>);
+      const employee = await this.repository.update(id, result.data as Partial<Employee>);
       return { success: true, employee };
     } catch (error) {
       console.error('Update employee error:', error);

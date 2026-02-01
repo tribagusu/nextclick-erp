@@ -21,6 +21,7 @@ import { FormDialog } from '@/shared/components/ui/form-dialog';
 
 import { clientSchema, type ClientFormData, transformClientInput } from '../../domain/schemas';
 import { useCreateClient } from '../hooks/useClients';
+import { sanitizeFormData } from '@/shared/utils/sanitize';
 
 interface ClientFormDialogProps {
   open: boolean;
@@ -52,7 +53,8 @@ export function ClientFormDialog({ open, onOpenChange, onSuccess }: ClientFormDi
   const handleFormSubmit = async (data: ClientFormData) => {
     setError(null);
     try {
-      const transformed = transformClientInput(data);
+      const sanitized = sanitizeFormData(data);
+      const transformed = transformClientInput(sanitized);
       await createMutation.mutateAsync(transformed);
       toast.success('Client created successfully');
       reset();

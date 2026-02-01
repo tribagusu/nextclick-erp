@@ -8,7 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Client } from '@/shared/types/database.types';
 import { ClientRepository } from './client.repository';
 import type { ClientListParams, ClientListResponse, ClientCreateInput, ClientUpdateInput } from '../types';
-import { clientApiSchema } from '../schemas';
+import { clientApiSchema, clientUpdateSchema } from '../schemas';
 
 export class ClientService {
   private repository: ClientRepository;
@@ -67,9 +67,10 @@ export class ClientService {
    * Update an existing client
    */
   async updateClient(id: string, input: ClientUpdateInput): Promise<{ success: boolean; client?: Client; error?: string }> {
-    // Validate input (API schema accepts null values)
-    const result = clientApiSchema.partial().safeParse(input);
+    // Validate input using update schema (without email/phone requirement)
+    const result = clientUpdateSchema.safeParse(input);
     if (!result.success) {
+      console.error('Client validation failed:', result.error.issues);
       return { success: false, error: result.error.issues[0].message };
     }
 
