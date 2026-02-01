@@ -20,9 +20,8 @@ export const employeeFormSchema = z.object({
     .min(2, 'Name must be at least 2 characters'),
   email: z
     .string()
-    .email('Please enter a valid email address')
-    .optional()
-    .or(z.literal('')),
+    .min(1, 'Please enter an email address')
+    .email('Please enter a valid email address'),
   phone: z
     .string()
     .refine(
@@ -33,14 +32,12 @@ export const employeeFormSchema = z.object({
     .or(z.literal('')),
   position: z
     .string()
-    .max(100, 'Position title cannot exceed 100 characters')
-    .optional()
-    .or(z.literal('')),
+    .min(1, 'Please enter a position/job title')
+    .max(100, 'Position title cannot exceed 100 characters'),
   department: z
     .string()
-    .max(100, 'Department name cannot exceed 100 characters')
-    .optional()
-    .or(z.literal('')),
+    .min(1, 'Please enter a department')
+    .max(100, 'Department name cannot exceed 100 characters'),
   hire_date: z
     .string()
     .optional()
@@ -84,10 +81,10 @@ export type EmployeeFormOutput = z.output<typeof employeeSchema>;
 
 export const employeeApiSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Invalid email format').nullable().optional(),
+  email: z.string().min(1, 'Email is required').email('Invalid email format'),
   phone: z.string().nullable().optional(),
-  position: z.string().nullable().optional(),
-  department: z.string().nullable().optional(),
+  position: z.string().min(1, 'Position is required'),
+  department: z.string().min(1, 'Department is required'),
   hire_date: z.string().nullable().optional(),
   status: z.enum(employeeStatusOptions).optional(),
   salary: z.number().nullable().optional(),

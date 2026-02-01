@@ -20,9 +20,11 @@ export const milestoneFormSchema = z.object({
     .min(2, 'Milestone name must be at least 2 characters'),
   description: z
     .string()
-    .max(1000, 'Description cannot exceed 1000 characters')
-    .optional(),
-  due_date: z.string().optional(),
+    .min(1, 'Please enter a description')
+    .max(1000, 'Description cannot exceed 1000 characters'),
+  due_date: z
+    .string()
+    .min(1, 'Please select a target finish date'),
   completion_date: z.string().optional(),
   status: z
     .enum(milestoneStatusOptions, {
@@ -49,9 +51,12 @@ export const milestoneApiSchema = z.object({
     .string()
     .min(1, 'Please enter a milestone name')
     .min(2, 'Milestone name must be at least 2 characters'),
-  // Use transform to convert undefined to null for DB compatibility
-  description: z.string().nullish().transform(v => v ?? null),
-  due_date: z.string().nullish().transform(v => v ?? null),
+  description: z
+    .string()
+    .min(1, 'Description is required'),
+  due_date: z
+    .string()
+    .min(1, 'Target finish date is required'),
   completion_date: z.string().nullish().transform(v => v ?? null),
   status: z.enum(milestoneStatusOptions, {
     message: 'Please select a valid milestone status',
