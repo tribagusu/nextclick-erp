@@ -90,6 +90,21 @@ export const clientApiSchema = z
 export type ClientApiData = z.infer<typeof clientApiSchema>;
 
 // =============================================================================
+// UPDATE SCHEMA (without the email/phone requirement for partial updates)
+// =============================================================================
+
+export const clientUpdateSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+  email: z.string().email('Invalid email format').nullable().optional(),
+  phone: z.string().nullable().optional(),
+  company_name: z.string().optional(),
+  address: z.string().optional(),
+  notes: z.string().nullable().optional(),
+});
+
+export type ClientUpdateData = z.infer<typeof clientUpdateSchema>;
+
+// =============================================================================
 // Transform empty strings to null for database
 // =============================================================================
 

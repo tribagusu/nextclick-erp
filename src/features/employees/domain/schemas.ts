@@ -78,6 +78,26 @@ export type EmployeeFormData = z.input<typeof employeeFormSchema>;
 // Transformed data type (output shape for API)
 export type EmployeeFormOutput = z.output<typeof employeeSchema>;
 
+// =============================================================================
+// API SCHEMA (accepts null values from transformed frontend data)
+// =============================================================================
+
+export const employeeApiSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Invalid email format').nullable().optional(),
+  phone: z.string().nullable().optional(),
+  position: z.string().nullable().optional(),
+  department: z.string().nullable().optional(),
+  hire_date: z.string().nullable().optional(),
+  status: z.enum(employeeStatusOptions).optional(),
+  salary: z.number().nullable().optional(),
+});
+
+export type EmployeeApiData = z.infer<typeof employeeApiSchema>;
+
+// Update schema (name is optional for partial updates)
+export const employeeUpdateSchema = employeeApiSchema.partial();
+
 // Transform form data to database format
 export function transformEmployeeInput(data: EmployeeFormData) {
   return {
