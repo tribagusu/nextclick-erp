@@ -45,11 +45,13 @@ vi.mock('@/features/communications/domain/services/communication.service', () =>
   };
 });
 
-import { getInputCommunicationMock, getInvalidCommunicationMock, getValidCommunicationMock } from '@/features/communications/domain/mock.utils';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { handleCreateCommunication, handleDeleteCommunication, handleGetCommunication, handleGetCommunications, handleUpdateCommunication } from '@/features/communications/api/handlers';
-import { withParams } from '@/shared/base-feature/test-utils';
+import { getInputCommunicationMock, getInvalidCommunicationMock, getValidCommunicationMock } from '@/features/communications/domain/mock.utils';
 import { CommunicationService } from '@/features/communications/domain/services/communication.service';
+import { RequestContext } from '@/shared/base-feature/api/request-context.wrapper';
+import { withParams } from '@/shared/base-feature/test-utils';
+import { NextRequest } from 'next/server';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 
 const testEndpoint = 'http://test';
@@ -57,17 +59,24 @@ describe('Communication Handler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
+  afterEach(() => {
+    try {
+      RequestContext.set({});
+    } catch {
+      // ignore if context was never initialized
+    }
+  });
 
   describe('handleGetCommunications', () => {
     it('returns 401 when unauthorized user', async () => {
       dbMock.auth.getUser.mockResolvedValueOnce({
         data: { user: null },
       });
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'READ',
         body: JSON.stringify({}),
       });
-      const response = await handleGetCommunications(request)
+      const response = await handleGetCommunications(request, withParams({}))
 
       expect(response.status).toBe(401);
       expect(await response.json()).toEqual({
@@ -80,11 +89,11 @@ describe('Communication Handler', () => {
     })
 
     it('returns 200 when data is valid and service succeeds', async () => {
-      const request = new Request(testEndpoint + '?page=2&page_size=10&search=&sortBy=mode&sortOrder=asc', {
+      const request = new NextRequest(testEndpoint + '?page=2&page_size=10&search=&sortBy=mode&sortOrder=asc', {
         method: 'READ',
         body: JSON.stringify({}),
       });
-      const response = await handleGetCommunications(request)
+      const response = await handleGetCommunications(request, withParams({}))
 
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual({
@@ -104,7 +113,7 @@ describe('Communication Handler', () => {
       dbMock.auth.getUser.mockResolvedValueOnce({
         data: { user: null },
       });
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'READ',
         body: JSON.stringify({}),
       });
@@ -121,7 +130,7 @@ describe('Communication Handler', () => {
     })
 
     it('returns 200 when data is valid and service succeeds', async () => {
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'READ',
         body: JSON.stringify({}),
       });
@@ -134,8 +143,8 @@ describe('Communication Handler', () => {
       });
     });
 
-    it('returns 400 validation error for invalid param and details for each error', async () => {
-      const request = new Request(testEndpoint, {
+    it('returns 400 INVALID_PATH_PARAM error for invalid param and details for each error', async () => {
+      const request = new NextRequest(testEndpoint, {
         method: 'READ',
         body: JSON.stringify({}),
       });
@@ -145,7 +154,7 @@ describe('Communication Handler', () => {
       expect(await response.json()).toEqual({
         success: false,
         error: {
-          code: 'VALIDATION_ERROR',
+          code: 'INVALID_ROUTE_PARAM',
           message: 'Failed to read Communication Log',
           details: {
             id: 'Invalid UUID format'
@@ -158,7 +167,7 @@ describe('Communication Handler', () => {
       vi
         .spyOn(CommunicationService.prototype, 'getCommunication')
         .mockResolvedValueOnce(null);
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'READ',
         body: JSON.stringify({}),
       });
@@ -180,11 +189,11 @@ describe('Communication Handler', () => {
       dbMock.auth.getUser.mockResolvedValueOnce({
         data: { user: null },
       });
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'POST',
         body: JSON.stringify({}),
       });
-      const response = await handleCreateCommunication(request)
+      const response = await handleCreateCommunication(request, withParams({}))
 
       expect(response.status).toBe(401);
       expect(await response.json()).toEqual({
@@ -197,11 +206,11 @@ describe('Communication Handler', () => {
     });
 
     it('returns 201 when data is valid and service succeeds', async () => {
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'POST',
         body: JSON.stringify(getInputCommunicationMock()),
       });
-      const response = await handleCreateCommunication(request)
+      const response = await handleCreateCommunication(request, withParams({}))
 
       expect(response.status).toBe(201);
       expect(await response.json()).toEqual({
@@ -210,12 +219,12 @@ describe('Communication Handler', () => {
       });
     });
 
-    it('returns 400 validation error for invalid fields and details for each error', async () => {
-      const request = new Request(testEndpoint, {
+    it('returns 400 VALIDATION_ERROR for invalid fields and details for each error', async () => {
+      const request = new NextRequest(testEndpoint, {
         method: 'POST',
         body: JSON.stringify(getInvalidCommunicationMock()),
       });
-      const response = await handleCreateCommunication(request)
+      const response = await handleCreateCommunication(request, withParams({}))
 
       expect(response.status).toBe(400);
       expect(await response.json()).toEqual({
@@ -240,7 +249,7 @@ describe('Communication Handler', () => {
       dbMock.auth.getUser.mockResolvedValueOnce({
         data: { user: null },
       });
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'PUT',
         body: JSON.stringify({}),
       });
@@ -257,7 +266,7 @@ describe('Communication Handler', () => {
     })
 
     it('returns 200 when data is valid and service succeeds', async () => {
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'PUT',
         body: JSON.stringify(getInputCommunicationMock()),
       });
@@ -270,8 +279,32 @@ describe('Communication Handler', () => {
       });
     });
 
-    it('returns 400 validation error for invalid fields or param and details for each error', async () => {
-      const request = new Request(testEndpoint, {
+    it('returns 400 VALIDATION_ERROR code for invalid fields', async () => {
+      const request = new NextRequest(testEndpoint, {
+        method: 'PUT',
+        body: JSON.stringify(getInvalidCommunicationMock()),
+      });
+      const response = await handleUpdateCommunication(request, withParams({ id: communicationMock.id }))
+
+      expect(response.status).toBe(400);
+      expect(await response.json()).toEqual({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Failed to update Communication Log',
+          details: {
+            client_id: 'Client is required',
+            date: 'Date is required',
+            mode: 'Invalid option: expected one of "email"|"call"|"meeting"',
+            summary: 'Summary must be at least 10 characters',
+            follow_up_required: 'Invalid input: expected boolean, received number'
+          }
+        }
+      });
+    });
+
+    it('returns 400 INVALID_PATH_PARAM code for invalid path param', async () => {
+      const request = new NextRequest(testEndpoint, {
         method: 'PUT',
         body: JSON.stringify(getInvalidCommunicationMock()),
       });
@@ -281,15 +314,10 @@ describe('Communication Handler', () => {
       expect(await response.json()).toEqual({
         success: false,
         error: {
-          code: 'VALIDATION_ERROR',
+          code: 'INVALID_ROUTE_PARAM',
           message: 'Failed to update Communication Log',
           details: {
             id: 'Invalid UUID format',
-            client_id: 'Client is required',
-            date: 'Date is required',
-            mode: 'Invalid option: expected one of "email"|"call"|"meeting"',
-            summary: 'Summary must be at least 10 characters',
-            follow_up_required: 'Invalid input: expected boolean, received number'
           }
         }
       });
@@ -301,7 +329,7 @@ describe('Communication Handler', () => {
       dbMock.auth.getUser.mockResolvedValueOnce({
         data: { user: null },
       });
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'DELETE',
         body: JSON.stringify({}),
       });
@@ -318,7 +346,7 @@ describe('Communication Handler', () => {
     })
 
     it('returns 200 when data is valid and service succeeds', async () => {
-      const request = new Request(testEndpoint, {
+      const request = new NextRequest(testEndpoint, {
         method: 'DELETE',
         body: JSON.stringify({}),
       });
@@ -333,8 +361,8 @@ describe('Communication Handler', () => {
       });
     });
 
-    it('returns 400 validation error for invalid param and details for each error', async () => {
-      const request = new Request(testEndpoint, {
+    it('returns 400 INVALID_PATH_PARAM error for invalid param and details for each error', async () => {
+      const request = new NextRequest(testEndpoint, {
         method: 'DELETE',
         body: JSON.stringify({}),
       });
@@ -344,7 +372,7 @@ describe('Communication Handler', () => {
       expect(await response.json()).toEqual({
         success: false,
         error: {
-          code: 'VALIDATION_ERROR',
+          code: 'INVALID_ROUTE_PARAM',
           message: 'Failed to delete Communication Log',
           details: {
             id: 'Invalid UUID format'
@@ -354,4 +382,3 @@ describe('Communication Handler', () => {
     });
   });
 });
-

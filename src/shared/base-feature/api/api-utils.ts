@@ -4,8 +4,9 @@
  * Standardized API response format for consistency across all endpoints.
  */
 
-import { NextResponse } from 'next/server';
-import { ZodError } from 'zod';
+import { NextRequest, NextResponse } from 'next/server';
+import z, { ZodError, ZodObject } from 'zod';
+import { AppRouteHandlerRoutes } from '../../../../.next/types/routes';
 
 // =============================================================================
 // TYPES
@@ -32,6 +33,52 @@ export interface ApiError {
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
+export type ApiWrapper<TPath extends AppRouteHandlerRoutes> = (handler: ApiHandler<TPath>) => ApiHandler<TPath>;
+export type ApiHandler<TPath extends AppRouteHandlerRoutes> = (request: NextRequest, ctx: RouteContext<TPath>) => Promise<Response>;
+
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
+export function buildApiPipeline<TPath extends AppRouteHandlerRoutes>(...wrappers: ApiWrapper<TPath>[]) {
+  return function (
+    handler: ApiHandler<TPath>
+  ): ApiHandler<TPath> {
+    return wrappers.reduceRight(
+      (acc, wrapper) => wrapper(acc),
+      handler
+    );
+  };
+}
+
+export function validateSchema<T extends ZodObject>(
+  resource: string,
+  action: string,
+  params: Record<string, unknown>,
+  validationSchema: T,
+  errorCode: ErrorCode = ErrorCodes.VALIDATION_ERROR,
+): z.infer<T> {
+  const result = validationSchema.safeParse(params);
+  if (!result.success) {
+    throw new ValidationError(resource, action, result.error, errorCode);
+  }
+  return result.data;
+}
+
+export function validatePartialSchema(
+  resource: string,
+  action: string,
+  params: Record<string, unknown>,
+  validationSchema: ZodObject,
+  errorCode: ErrorCode = ErrorCodes.VALIDATION_ERROR,
+) {
+  const result = validationSchema.partial().safeParse(params);
+  if (!result.success) {
+    throw new ValidationError(resource, action, result.error, errorCode);
+  }
+  return result.data;
+}
+
 // =============================================================================
 // ERROR CODES
 // =============================================================================
@@ -44,6 +91,7 @@ export const ErrorCodes = {
   // Validation errors
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   INVALID_INPUT: 'INVALID_INPUT',
+  INVALID_ROUTE_PARAM: 'INVALID_ROUTE_PARAM',
 
   // Resource errors
   NOT_FOUND: 'NOT_FOUND',
@@ -106,12 +154,12 @@ export abstract class AppError extends Error {
 
 export class ValidationError extends AppError {
   readonly statusCode = 400;
-  constructor(resource: string, action: string, readonly error: ZodError) {
+  constructor(resource: string, action: string, readonly error: ZodError, readonly errorCode: ErrorCode = ErrorCodes.VALIDATION_ERROR) {
     super(`Failed to ${action} ${resource}`);
 
   }
   getErrorResponse() {
-    return errorResponse(ErrorCodes.VALIDATION_ERROR, this.message, this.statusCode, this.formatZodError(this.error));
+    return errorResponse(this.errorCode, this.message, this.statusCode, this.formatZodError(this.error));
   }
   private formatZodError(error: ZodError) {
     return error.issues.reduce<Record<string, string>>((result, issue) => {
