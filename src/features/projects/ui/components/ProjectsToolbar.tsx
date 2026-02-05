@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/shared/components/ui/select';
 
-import type { ProjectStatus } from '@/shared/types/database.types';
+import type { ProjectStatus } from '@/shared/base-feature/domain/database.types';
 
 interface ProjectsToolbarProps {
   search: string;

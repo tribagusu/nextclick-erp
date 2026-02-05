@@ -5,7 +5,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Project } from '@/shared/types/database.types';
+import type { Project } from '@/shared/base-feature/domain/database.types';
 import type { ProjectListParams, ProjectListResponse, ProjectCreateInput, ProjectUpdateInput } from '../../domain/types';
 
 export const projectKeys = {

@@ -3,13 +3,13 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, ProjectMilestone, MilestoneStatus, Project } from '@/shared/types/database.types';
-import { BaseRepository } from '@/shared/lib/api/base-repository';
-import type { MilestoneListParams, MilestoneListResponse } from '../types';
+import type { Database, ProjectMilestone, Project } from '@/shared/base-feature/domain/database.types';
+import { BaseRepository } from '@/shared/base-feature/domain/base.repository';
+import type { MilestoneCreateInput, MilestoneListParams, MilestoneListResponse, MilestoneUpdateInput } from '../types';
 
-export class MilestoneRepository extends BaseRepository<ProjectMilestone> {
-  constructor(client: SupabaseClient<Database>) {
-    super(client, 'project_milestones');
+export class MilestoneRepository extends BaseRepository<ProjectMilestone, MilestoneCreateInput, MilestoneUpdateInput> {
+  constructor(dbClient: SupabaseClient<Database>) {
+    super(dbClient, 'project_milestones');
   }
 
   async findAllPaginated(params: MilestoneListParams = {}): Promise<MilestoneListResponse> {
@@ -25,7 +25,7 @@ export class MilestoneRepository extends BaseRepository<ProjectMilestone> {
 
     const offset = (page - 1) * pageSize;
 
-    let query = this.client
+    let query = this.dbClient
       .from('project_milestones')
       .select('*', { count: 'exact' })
       .is('deleted_at', null);
@@ -55,7 +55,7 @@ export class MilestoneRepository extends BaseRepository<ProjectMilestone> {
   }
 
   async findByIdWithProject(id: string): Promise<(ProjectMilestone & { project_name: string }) | null> {
-    const { data: milestone, error } = await this.client
+    const { data: milestone, error } = await this.dbClient
       .from('project_milestones')
       .select('*')
       .eq('id', id)
@@ -64,7 +64,7 @@ export class MilestoneRepository extends BaseRepository<ProjectMilestone> {
 
     if (error || !milestone) return null;
 
-    const { data: projectData } = await this.client
+    const { data: projectData } = await this.dbClient
       .from('projects')
       .select('project_name')
       .eq('id', (milestone as ProjectMilestone).project_id)

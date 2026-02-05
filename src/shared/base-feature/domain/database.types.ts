@@ -17,22 +17,29 @@ export type MilestoneStatus = 'pending' | 'in_progress' | 'completed' | 'cancell
 export type CommunicationMode = 'email' | 'call' | 'meeting';
 
 // =============================================================================
-// BASE TYPES (match database schema exactly)
+// BASE TYPES (allows reuse)
 // =============================================================================
 
-export interface User {
+export interface BaseEntity {
   id: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+}
+
+// =============================================================================
+// DOMAIN TYPES (match database schema exactly)
+// =============================================================================
+
+export interface User extends BaseEntity {
   email: string;
   name: string | null;
   avatar_url: string | null;
   role: UserRole;
   is_active: boolean;
-  created_at: string;
-  updated_at: string;
 }
 
-export interface Employee {
-  id: string;
+export interface Employee extends BaseEntity {
   user_id: string | null;
   name: string;
   email: string | null;
@@ -42,26 +49,18 @@ export interface Employee {
   hire_date: string | null;
   status: EmployeeStatus;
   salary: number | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
 }
 
-export interface Client {
-  id: string;
+export interface Client extends BaseEntity {
   name: string;
   email: string | null;
   phone: string | null;
   company_name: string | null;
   address: string | null;
   notes: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
 }
 
-export interface Project {
-  id: string;
+export interface Project extends BaseEntity {
   client_id: string;
   project_name: string;
   description: string | null;
@@ -73,9 +72,6 @@ export interface Project {
   amount_paid: number;
   payment_terms: string | null;
   last_payment_date: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
 }
 
 export interface ProjectEmployee {
@@ -84,8 +80,7 @@ export interface ProjectEmployee {
   assigned_at: string;
 }
 
-export interface ProjectMilestone {
-  id: string;
+export interface ProjectMilestone extends BaseEntity {
   project_id: string;
   milestone: string;
   description: string | null;
@@ -93,9 +88,6 @@ export interface ProjectMilestone {
   completion_date: string | null;
   status: MilestoneStatus;
   remarks: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
 }
 
 export interface MilestoneEmployee {
@@ -104,8 +96,7 @@ export interface MilestoneEmployee {
   assigned_at: string;
 }
 
-export interface CommunicationLog {
-  id: string;
+export interface CommunicationLog extends BaseEntity {
   client_id: string;
   project_id: string | null;
   date: string;
@@ -113,9 +104,6 @@ export interface CommunicationLog {
   summary: string;
   follow_up_required: boolean;
   follow_up_date: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
 }
 
 // =============================================================================

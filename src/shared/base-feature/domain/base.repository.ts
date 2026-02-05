@@ -9,8 +9,8 @@
  * stricter typing as needed.
  */
 
+import type { BaseEntity, Database, TableName } from '@/shared/base-feature/domain/database.types';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, TableName } from '@/shared/types/database.types';
 
 export interface RepositoryOptions {
   /** Include soft-deleted records */
@@ -18,12 +18,9 @@ export interface RepositoryOptions {
 }
 
 // Generic record type helper - using object for wider compatibility with interfaces
-export class BaseRepository<TRow extends { id: string; deleted_at?: string | null }> {
-  protected client: SupabaseClient<Database>;
-  protected tableName: TableName;
-
-  constructor(client: SupabaseClient<Database>, tableName: TableName) {
-    this.client = client;
+export abstract class BaseRepository<TRow extends BaseEntity, CreateInput, UpdateInput> {
+  constructor(protected dbClient: SupabaseClient<Database>, protected tableName: TableName) {
+    this.dbClient = dbClient;
     this.tableName = tableName;
   }
 
@@ -31,7 +28,7 @@ export class BaseRepository<TRow extends { id: string; deleted_at?: string | nul
    * Get all records (excluding soft-deleted by default)
    */
   async findAll(options?: RepositoryOptions): Promise<TRow[]> {
-    let query = this.client.from(this.tableName).select('*');
+    let query = this.dbClient.from(this.tableName).select('*');
 
     if (!options?.includeSoftDeleted) {
       query = query.is('deleted_at', null);
@@ -46,7 +43,7 @@ export class BaseRepository<TRow extends { id: string; deleted_at?: string | nul
    * Get a single record by ID
    */
   async findById(id: string, options?: RepositoryOptions): Promise<TRow | null> {
-    let query = this.client.from(this.tableName).select('*').eq('id', id);
+    let query = this.dbClient.from(this.tableName).select('*').eq('id', id);
 
     if (!options?.includeSoftDeleted) {
       query = query.is('deleted_at', null);
@@ -60,8 +57,8 @@ export class BaseRepository<TRow extends { id: string; deleted_at?: string | nul
   /**
    * Create a new record
    */
-  async create(record: Partial<TRow>): Promise<TRow> {
-    const { data, error } = await this.client
+  async create(record: Partial<CreateInput>): Promise<TRow> {
+    const { data, error } = await this.dbClient
       .from(this.tableName)
       .insert(record as never)
       .select()
@@ -74,8 +71,8 @@ export class BaseRepository<TRow extends { id: string; deleted_at?: string | nul
   /**
    * Update a record by ID
    */
-  async update(id: string, updates: Partial<TRow>): Promise<TRow> {
-    const { data, error } = await this.client
+  async update(id: string, updates: Partial<UpdateInput>): Promise<TRow> {
+    const { data, error } = await this.dbClient
       .from(this.tableName)
       .update(updates as never)
       .eq('id', id)
@@ -90,7 +87,7 @@ export class BaseRepository<TRow extends { id: string; deleted_at?: string | nul
    * Soft delete a record by ID
    */
   async softDelete(id: string): Promise<void> {
-    const { error } = await this.client
+    const { error } = await this.dbClient
       .from(this.tableName)
       .update({ deleted_at: new Date().toISOString() } as never)
       .eq('id', id);
@@ -102,7 +99,7 @@ export class BaseRepository<TRow extends { id: string; deleted_at?: string | nul
    * Hard delete a record by ID (use with caution)
    */
   async hardDelete(id: string): Promise<void> {
-    const { error } = await this.client
+    const { error } = await this.dbClient
       .from(this.tableName)
       .delete()
       .eq('id', id);
@@ -114,7 +111,7 @@ export class BaseRepository<TRow extends { id: string; deleted_at?: string | nul
    * Restore a soft-deleted record
    */
   async restore(id: string): Promise<TRow> {
-    const { data, error } = await this.client
+    const { data, error } = await this.dbClient
       .from(this.tableName)
       .update({ deleted_at: null } as never)
       .eq('id', id)
@@ -124,7 +121,11 @@ export class BaseRepository<TRow extends { id: string; deleted_at?: string | nul
     if (error) throw error;
     return data as TRow;
   }
+  // TODO: ONCE BASE FEATURE IS APPLIED TO ALL MODULES, UNCOMMENT
+  // abstract findAllPaginated(params: GetAllParams): Promise<PaginatedResponse<TRow>>;
 }
+
+
 
 /**
  * Create a typed repository for a specific table

@@ -18,7 +18,7 @@ import {
 } from '@/shared/components/ui/breadcrumb';
 import { AppSidebar } from './AppSidebar';
 
-import type { UserRole } from '@/shared/types/database.types';
+import type { UserRole } from '@/shared/base-feature/domain/database.types';
 
 // =============================================================================
 // TYPES

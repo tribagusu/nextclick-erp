@@ -23,7 +23,7 @@ import {
 } from '@/shared/components/ui/select';
 
 import { milestoneFormSchema, milestoneStatusOptions, type MilestoneFormData, transformMilestoneInput } from '../../domain/schemas';
-import type { ProjectMilestone } from '@/shared/types/database.types';
+import type { ProjectMilestone } from '@/shared/base-feature/domain/database.types';
 
 interface MilestoneFormProps {
   defaultValues?: Partial<ProjectMilestone>;

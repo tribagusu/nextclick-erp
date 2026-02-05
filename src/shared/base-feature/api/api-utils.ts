@@ -4,8 +4,9 @@
  * Standardized API response format for consistency across all endpoints.
  */
 
-import { NextResponse } from 'next/server';
-import { ZodError } from 'zod';
+import { NextRequest, NextResponse } from 'next/server';
+import z, { ZodError, ZodObject } from 'zod';
+import { AppRouteHandlerRoutes } from '../../../../.next/types/routes';
 
 // =============================================================================
 // TYPES
@@ -32,6 +33,52 @@ export interface ApiError {
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
+export type ApiWrapper<TPath extends AppRouteHandlerRoutes> = (handler: ApiHandler<TPath>) => ApiHandler<TPath>;
+export type ApiHandler<TPath extends AppRouteHandlerRoutes> = (request: NextRequest, ctx: RouteContext<TPath>) => Promise<Response>;
+
+// =============================================================================
+// UTILITY FUNCTIONS
+// =============================================================================
+
+export function buildApiPipeline<TPath extends AppRouteHandlerRoutes>(...wrappers: ApiWrapper<TPath>[]) {
+  return function (
+    handler: ApiHandler<TPath>
+  ): ApiHandler<TPath> {
+    return wrappers.reduceRight(
+      (acc, wrapper) => wrapper(acc),
+      handler
+    );
+  };
+}
+
+export function validateSchema<T extends ZodObject>(
+  resource: string,
+  action: string,
+  params: Record<string, unknown>,
+  validationSchema: T,
+  errorCode: ErrorCode = ErrorCodes.VALIDATION_ERROR,
+): z.infer<T> {
+  const result = validationSchema.safeParse(params);
+  if (!result.success) {
+    throw new ValidationError(resource, action, result.error, errorCode);
+  }
+  return result.data;
+}
+
+export function validatePartialSchema(
+  resource: string,
+  action: string,
+  params: Record<string, unknown>,
+  validationSchema: ZodObject,
+  errorCode: ErrorCode = ErrorCodes.VALIDATION_ERROR,
+) {
+  const result = validationSchema.partial().safeParse(params);
+  if (!result.success) {
+    throw new ValidationError(resource, action, result.error, errorCode);
+  }
+  return result.data;
+}
+
 // =============================================================================
 // ERROR CODES
 // =============================================================================
@@ -44,6 +91,7 @@ export const ErrorCodes = {
   // Validation errors
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   INVALID_INPUT: 'INVALID_INPUT',
+  INVALID_ROUTE_PARAM: 'INVALID_ROUTE_PARAM',
 
   // Resource errors
   NOT_FOUND: 'NOT_FOUND',
@@ -93,7 +141,7 @@ export function errorResponse(
 }
 
 // =============================================================================
-// COMMON ERROR RESPONSES
+// COMMON ERRORS
 // =============================================================================
 
 export abstract class AppError extends Error {
@@ -106,12 +154,12 @@ export abstract class AppError extends Error {
 
 export class ValidationError extends AppError {
   readonly statusCode = 400;
-  constructor(resource: string, action: string, readonly error: ZodError) {
+  constructor(resource: string, action: string, readonly error: ZodError, readonly errorCode: ErrorCode = ErrorCodes.VALIDATION_ERROR) {
     super(`Failed to ${action} ${resource}`);
 
   }
   getErrorResponse() {
-    return errorResponse(ErrorCodes.VALIDATION_ERROR, this.message, this.statusCode, this.formatZodError(this.error));
+    return errorResponse(this.errorCode, this.message, this.statusCode, this.formatZodError(this.error));
   }
   private formatZodError(error: ZodError) {
     return error.issues.reduce<Record<string, string>>((result, issue) => {
@@ -132,17 +180,15 @@ export class UnauthorizedError extends AppError {
   }
 }
 
-// =============================================================================
-// Global Exception Handler
-// =============================================================================
-export function handleApiError(error: unknown): Response {
-  console.error('Create communication error:', error);
-  if (error instanceof AppError) {
-    return error.getErrorResponse();
+export class NotFoundError extends AppError {
+  readonly statusCode = 404;
+  constructor(resource: string) {
+    super(`${resource} not found`);
   }
-  return internalErrorResponse();
+  getErrorResponse() {
+    return errorResponse(ErrorCodes.NOT_FOUND, this.message, this.statusCode);
+  }
 }
-
 
 // =============================================================================
 // COMMON ERROR RESPONSES
@@ -170,43 +216,4 @@ export function conflictResponse(message: string) {
 
 export function internalErrorResponse(message = 'An unexpected error occurred') {
   return errorResponse(ErrorCodes.INTERNAL_ERROR, message, 500);
-}
-
-/**
- * Handle database errors with appropriate status codes
- */
-export function handleDatabaseError(error: unknown): NextResponse<ApiError> {
-  console.error('[Database Error]', error);
-
-  const err = error as { code?: string; message?: string };
-
-  // Foreign key violation
-  if (err.code === '23503') {
-    return errorResponse(
-      ErrorCodes.CONFLICT,
-      'Referenced record does not exist',
-      409
-    );
-  }
-
-  // Unique constraint violation
-  if (err.code === '23505') {
-    return errorResponse(
-      ErrorCodes.CONFLICT,
-      'Record already exists',
-      409
-    );
-  }
-
-  // RLS policy violation
-  if (err.code === '42501') {
-    return forbiddenResponse();
-  }
-
-  // Generic database error
-  return errorResponse(
-    ErrorCodes.DATABASE_ERROR,
-    'Database operation failed',
-    500
-  );
 }

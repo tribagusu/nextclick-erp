@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import type { Client } from '@/shared/types/database.types';
+import type { Client } from '@/shared/base-feature/domain/database.types';
 import { useClients, useDeleteClient } from '../hooks/useClients';
 import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 

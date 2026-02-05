@@ -38,7 +38,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
 
-import type { UserRole } from '@/shared/types/database.types';
+import type { UserRole } from '@/shared/base-feature/domain/database.types';
 import { hasPermission, type Permission } from '@/shared/lib/auth/permissions';
 import { useTheme } from 'next-themes';
 

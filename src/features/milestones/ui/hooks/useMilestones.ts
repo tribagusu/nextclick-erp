@@ -5,7 +5,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ProjectMilestone } from '@/shared/types/database.types';
+import type { ProjectMilestone } from '@/shared/base-feature/domain/database.types';
 import type { MilestoneListParams, MilestoneListResponse, MilestoneCreateInput, MilestoneUpdateInput } from '../../domain/types';
 
 export const milestoneKeys = {
