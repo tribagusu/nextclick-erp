@@ -3,7 +3,8 @@
  */
 
 import '@testing-library/jest-dom/vitest';
-import { vi, beforeAll, afterAll } from 'vitest';
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { afterAll, beforeAll, vi } from 'vitest';
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
@@ -43,3 +44,5 @@ beforeAll(() => {
 afterAll(() => {
   console.error = originalError;
 });
+
+(globalThis as any).AsyncLocalStorage ??= AsyncLocalStorage;

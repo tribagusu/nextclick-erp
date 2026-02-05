@@ -4,6 +4,7 @@
 
 import type { BaseEntity } from '@/shared/base-feature/domain/database.types';
 import { restrictValue } from '@/shared/lib/utils';
+import { NextURL } from 'next/dist/server/web/next-url';
 
 export const SortOrders = {
   ASC: 'asc',
@@ -23,8 +24,7 @@ export class GetAllParams {
   sortBy?: string;
   sortOrder?: SortOrder;
 
-  constructor(urlString: string) {
-    const url = new URL(urlString);
+  constructor(url: NextURL) {
     this.page = restrictValue(url.searchParams.get('page'), GetAllParams.DEFAULT_PAGE, Number.MAX_SAFE_INTEGER, GetAllParams.DEFAULT_PAGE);
     this.pageSize = restrictValue(url.searchParams.get('pageSize'), GetAllParams.MIN_PAGE_SIZE, GetAllParams.MAX_PAGE_SIZE, GetAllParams.DEFAULT_PAGE_SIZE);
     this.search = url.searchParams.get('search') ?? undefined;
