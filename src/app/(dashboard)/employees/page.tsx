@@ -2,12 +2,10 @@
  * Employees List Page
  */
 
-import { EmployeesTable } from '@/features/employees/ui/components/EmployeesTable';
+'use client';
 
-export const metadata = {
-  title: 'Employees | Next Click ERP',
-  description: 'Manage your team',
-};
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { EmployeesTable } from '@/features/employees/ui/components/EmployeesTable';
 
 export default function EmployeesPage() {
   return (
@@ -16,7 +14,9 @@ export default function EmployeesPage() {
         <h1 className="text-3xl font-bold">Employees</h1>
         <p className="text-muted-foreground">Manage your team members</p>
       </div>
-      <EmployeesTable />
+      <FeatureErrorBoundary featureName="Employees">
+        <EmployeesTable />
+      </FeatureErrorBoundary>
     </div>
   );
 }

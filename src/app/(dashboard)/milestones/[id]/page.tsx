@@ -12,6 +12,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Badge } from '@/shared/components/ui/badge';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 import { useMilestone } from '@/features/milestones/ui/hooks/useMilestones';
 
@@ -90,7 +91,8 @@ export default function MilestoneDetailPage({ params }: MilestoneDetailPageProps
         </Link>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <FeatureErrorBoundary featureName="Milestone Details">
+        <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Milestone Details</CardTitle>
@@ -135,7 +137,8 @@ export default function MilestoneDetailPage({ params }: MilestoneDetailPageProps
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </FeatureErrorBoundary>
     </div>
   );
 }

@@ -1,9 +1,7 @@
-import { CommunicationsTable } from '@/features/communications/ui/components/CommunicationsTable';
+'use client';
 
-export const metadata = {
-  title: 'Communications | Next Click ERP',
-  description: 'Manage communication logs',
-};
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { CommunicationsTable } from '@/features/communications/ui/components/CommunicationsTable';
 
 export default function CommunicationsPage() {
   return (
@@ -12,7 +10,9 @@ export default function CommunicationsPage() {
         <h1 className="text-3xl font-bold">Communications</h1>
         <p className="text-muted-foreground">Track client interactions</p>
       </div>
-      <CommunicationsTable />
+      <FeatureErrorBoundary featureName="Communications">
+        <CommunicationsTable />
+      </FeatureErrorBoundary>
     </div>
   );
 }
