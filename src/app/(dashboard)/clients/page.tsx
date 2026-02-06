@@ -2,12 +2,10 @@
  * Clients List Page
  */
 
-import { ClientsTable } from '@/features/clients/ui/components/ClientsTable';
+'use client';
 
-export const metadata = {
-  title: 'Clients | Next Click ERP',
-  description: 'Manage your clients',
-};
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { ClientsTable } from '@/features/clients/ui/components/ClientsTable';
 
 export default function ClientsPage() {
   return (
@@ -17,7 +15,9 @@ export default function ClientsPage() {
         <p className="text-muted-foreground">Manage your client relationships</p>
       </div>
 
-      <ClientsTable />
+      <FeatureErrorBoundary featureName="Clients">
+        <ClientsTable />
+      </FeatureErrorBoundary>
     </div>
   );
 }
