@@ -5,6 +5,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import { ZodError } from 'zod';
 
 // =============================================================================
 // TYPES
@@ -39,15 +40,15 @@ export const ErrorCodes = {
   // Authentication errors
   UNAUTHORIZED: 'UNAUTHORIZED',
   FORBIDDEN: 'FORBIDDEN',
-  
+
   // Validation errors
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   INVALID_INPUT: 'INVALID_INPUT',
-  
+
   // Resource errors
   NOT_FOUND: 'NOT_FOUND',
   CONFLICT: 'CONFLICT',
-  
+
   // Server errors
   INTERNAL_ERROR: 'INTERNAL_ERROR',
   DATABASE_ERROR: 'DATABASE_ERROR',
@@ -95,6 +96,58 @@ export function errorResponse(
 // COMMON ERROR RESPONSES
 // =============================================================================
 
+export abstract class AppError extends Error {
+  abstract readonly statusCode: number;
+  constructor(message: string) {
+    super(message);
+  }
+  abstract getErrorResponse(): NextResponse<ApiError>;
+}
+
+export class ValidationError extends AppError {
+  readonly statusCode = 400;
+  constructor(resource: string, action: string, readonly error: ZodError) {
+    super(`Failed to ${action} ${resource}`);
+
+  }
+  getErrorResponse() {
+    return errorResponse(ErrorCodes.VALIDATION_ERROR, this.message, this.statusCode, this.formatZodError(this.error));
+  }
+  private formatZodError(error: ZodError) {
+    return error.issues.reduce<Record<string, string>>((result, issue) => {
+      const field = issue.path.join('.');
+      result[field] = issue.message;
+      return result;
+    }, {});
+  }
+}
+
+export class UnauthorizedError extends AppError {
+  readonly statusCode = 401;
+  constructor(message = 'Authentication required') {
+    super(message);
+  }
+  getErrorResponse() {
+    return errorResponse(ErrorCodes.UNAUTHORIZED, this.message, this.statusCode);
+  }
+}
+
+// =============================================================================
+// Global Exception Handler
+// =============================================================================
+export function handleApiError(error: unknown): Response {
+  console.error('Create communication error:', error);
+  if (error instanceof AppError) {
+    return error.getErrorResponse();
+  }
+  return internalErrorResponse();
+}
+
+
+// =============================================================================
+// COMMON ERROR RESPONSES
+// =============================================================================
+
 export function unauthorizedResponse(message = 'Authentication required') {
   return errorResponse(ErrorCodes.UNAUTHORIZED, message, 401);
 }
@@ -124,9 +177,9 @@ export function internalErrorResponse(message = 'An unexpected error occurred') 
  */
 export function handleDatabaseError(error: unknown): NextResponse<ApiError> {
   console.error('[Database Error]', error);
-  
+
   const err = error as { code?: string; message?: string };
-  
+
   // Foreign key violation
   if (err.code === '23503') {
     return errorResponse(
@@ -135,7 +188,7 @@ export function handleDatabaseError(error: unknown): NextResponse<ApiError> {
       409
     );
   }
-  
+
   // Unique constraint violation
   if (err.code === '23505') {
     return errorResponse(
@@ -144,12 +197,12 @@ export function handleDatabaseError(error: unknown): NextResponse<ApiError> {
       409
     );
   }
-  
+
   // RLS policy violation
   if (err.code === '42501') {
     return forbiddenResponse();
   }
-  
+
   // Generic database error
   return errorResponse(
     ErrorCodes.DATABASE_ERROR,
