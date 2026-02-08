@@ -18,7 +18,6 @@ import { ProjectsToolbar } from './ProjectsToolbar';
 import { ProjectsDataTable } from './ProjectsDataTable';
 import { ProjectsPagination } from './ProjectsPagination';
 import { ProjectFormDialog } from './ProjectFormDialog';
-import { ProjectEditDialog } from './ProjectEditDialog';
 
 export function ProjectsTable() {
   const router = useRouter();
@@ -124,12 +123,14 @@ export function ProjectsTable() {
         isLoading={deleteMutation.isPending}
       />
 
+      {/* Create dialog (no project = create mode) */}
       <ProjectFormDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
 
-      <ProjectEditDialog
+      {/* Edit dialog (with project = edit mode) */}
+      <ProjectFormDialog
         open={!!editProject}
         onOpenChange={(open) => !open && setEditProject(null)}
         project={editProject}

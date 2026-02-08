@@ -31,6 +31,7 @@ import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 
 import { useProjectMembers, useAddProjectMember, useRemoveProjectMember } from '../hooks/useProjectMembers';
 import { useEmployees } from '@/features/employees/ui/hooks/useEmployees';
+import { sanitizeString } from '@/shared/utils/sanitize';
 import type { ProjectMember } from '../../domain/types';
 
 interface TeamMembersDialogProps {
@@ -72,7 +73,7 @@ export function TeamMembersDialog({
     try {
       await addMember.mutateAsync({
         employee_id: selectedEmployeeId,
-        role: role || null,
+        role: role ? sanitizeString(role) : null,
       });
       setSelectedEmployeeId('');
       setRole('');

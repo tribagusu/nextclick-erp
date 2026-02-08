@@ -18,7 +18,7 @@ import { Progress } from '@/shared/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 
 import { useProject } from '@/features/projects/ui/hooks/useProjects';
-import { ProjectEditDialog } from '@/features/projects/ui/components/ProjectEditDialog';
+import { ProjectFormDialog } from '@/features/projects/ui/components/ProjectFormDialog';
 import { TeamMembersSection } from '@/features/project-members/ui/components/TeamMembersSection';
 import { TeamMembersDialog } from '@/features/project-members/ui/components/TeamMembersDialog';
 import { MilestonesTab } from '@/features/milestones/ui/components/MilestonesTab';
@@ -205,7 +205,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
       </Tabs>
 
       {/* Dialogs */}
-      <ProjectEditDialog
+      <ProjectFormDialog
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         project={project}
