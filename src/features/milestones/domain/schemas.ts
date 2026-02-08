@@ -74,8 +74,8 @@ export function transformMilestoneInput(data: MilestoneFormData): MilestoneApiDa
   return {
     project_id: data.project_id,
     milestone: data.milestone,
-    description: data.description || null,
-    due_date: data.due_date || null,
+    description: data.description,
+    due_date: data.due_date,
     completion_date: data.completion_date || null,
     status: data.status ?? 'pending',
     remarks: data.remarks || null,
