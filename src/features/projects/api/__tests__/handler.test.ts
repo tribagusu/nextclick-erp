@@ -98,12 +98,12 @@ describe('Project Handler', () => {
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual({
         success: true,
-        data: [projectMock],
-        meta: {
+        data: {
+          data: [projectMock],
           total: 1,
           page: 2,
           pageSize: 1,
-        }
+        },
       });
     });
   });
