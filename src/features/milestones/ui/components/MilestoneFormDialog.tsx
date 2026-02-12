@@ -45,6 +45,7 @@ import {
   type MilestoneFormData,
   transformMilestoneInput,
 } from '../../domain/schemas';
+import { sanitizeFormData } from '@/shared/utils/sanitize';
 
 interface MilestoneFormDialogProps {
   open: boolean;
@@ -131,7 +132,9 @@ export function MilestoneFormDialog({
     const dataWithProjectId = { ...data, project_id: projectId };
     log.debug('Data with projectId added:', dataWithProjectId);
     
-    const transformed = transformMilestoneInput(dataWithProjectId);
+    // Sanitize form data to prevent XSS
+    const sanitized = sanitizeFormData(dataWithProjectId);
+    const transformed = transformMilestoneInput(sanitized);
     log.debug('Transformed data for API:', transformed);
 
     try {
@@ -231,9 +234,7 @@ export function MilestoneFormDialog({
             {/* Description - disabled in restricted mode */}
             {!restrictedMode && (
               <div className="space-y-2">
-                <Label htmlFor="description">
-                  Description <span className="text-destructive">*</span>
-                </Label>
+                <Label htmlFor="description">Description *</Label>
                 <Textarea
                   id="description"
                   placeholder="Describe what needs to be accomplished in this milestone"
@@ -250,9 +251,7 @@ export function MilestoneFormDialog({
             <div className="grid grid-cols-2 gap-4">
               {!restrictedMode && (
                 <div className="space-y-2">
-                  <Label>
-                    Target Finish Date <span className="text-destructive">*</span>
-                  </Label>
+                  <Label>Target Finish Date *</Label>
                   <DatePicker
                     value={parseDateString(currentDueDate)}
                     onChange={(date) => setValue('due_date', formatDateForForm(date))}
