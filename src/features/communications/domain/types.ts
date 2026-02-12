@@ -2,37 +2,11 @@
  * Communications Feature - Domain Types
  */
 
-import type { CommunicationLog, CommunicationMode } from '@/shared/types/database.types';
+import { GetAllParams } from '@/shared/base-feature/domain/base.types';
+import type { BaseEntity, CommunicationLog } from '@/shared/base-feature/domain/database.types';
 
-export type CommunicationRow = CommunicationLog;
+export interface CommunicationListParams extends GetAllParams, CommunicationUpdateInput { }
 
-export interface CommunicationListParams {
-  page?: number;
-  pageSize?: number;
-  search?: string;
-  mode?: CommunicationMode;
-  clientId?: string;
-  projectId?: string;
-  followUpRequired?: boolean;
-  sortBy?: keyof CommunicationLog;
-  sortOrder?: 'asc' | 'desc';
-}
-
-export interface CommunicationListResponse {
-  communications: CommunicationRow[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
-
-export type CommunicationCreateInput = {
-  client_id: string;
-  project_id?: string | null;
-  date: string;
-  mode: CommunicationMode;
-  summary: string;
-  follow_up_required?: boolean;
-  follow_up_date?: string | null;
-};
+export type CommunicationCreateInput = Omit<CommunicationLog, keyof BaseEntity>;
 
 export type CommunicationUpdateInput = Partial<CommunicationCreateInput>;

@@ -7,7 +7,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Client } from '@/shared/types/database.types';
+import type { Client } from '@/shared/base-feature/domain/database.types';
 import type { ClientListParams, ClientListResponse, ClientCreateInput, ClientUpdateInput } from '../../domain/types';
 
 // Query keys

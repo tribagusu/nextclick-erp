@@ -3,6 +3,11 @@ export const Resources = Object.freeze({
   // ... other resources
 });
 
+export const TableNames = Object.freeze({
+  COMMUNICATION_LOG: 'communication_logs',
+  // ... other resources
+});
+
 export const Actions = Object.freeze({
   CREATE: 'create',
   READ: 'read',

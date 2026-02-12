@@ -4,7 +4,7 @@
  * Role-based access control utilities for UI and API layers.
  */
 
-import type { UserRole } from '@/shared/types/database.types';
+import type { UserRole } from '@/shared/base-feature/domain/database.types';
 
 // =============================================================================
 // PERMISSION DEFINITIONS
