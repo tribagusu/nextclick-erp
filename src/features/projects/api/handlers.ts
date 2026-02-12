@@ -41,9 +41,9 @@ export const handleGetProjects = buildApiPipeline<'/api/projects'>(
   };
 
   const service = await createProjectService(dbClient);
-  const { data, ...paginationDetails } = await service.getProjects({ ...baseGetAllParams, ...filterParams });
+  const result = await service.getProjects({ ...baseGetAllParams, ...filterParams });
 
-  return successResponse(data, paginationDetails);
+  return successResponse(result);
 });
 
 export const handleGetProject = buildApiPipeline<'/api/projects/[id]'>(
