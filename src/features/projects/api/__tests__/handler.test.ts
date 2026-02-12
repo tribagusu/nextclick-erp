@@ -233,9 +233,9 @@ describe('Project Handler', () => {
           code: 'VALIDATION_ERROR',
           details: {
             amount_paid: 'Invalid input: expected number, received string',
-            client_id: 'Client is required',
+            client_id: 'Please select a client for this project',
             payment_terms: 'Invalid input: expected string, received number',
-            project_name: 'Name must be at least 2 characters',
+            project_name: 'Project name must be at least 2 characters',
             total_budget: 'Invalid input: expected number, received string',
           },
           message: "Failed to create Project",
@@ -293,9 +293,9 @@ describe('Project Handler', () => {
           code: 'VALIDATION_ERROR',
           details: {
             amount_paid: 'Invalid input: expected number, received string',
-            client_id: 'Client is required',
+            client_id: 'Please select a client for this project',
             payment_terms: 'Invalid input: expected string, received number',
-            project_name: 'Name must be at least 2 characters',
+            project_name: 'Project name must be at least 2 characters',
             total_budget: 'Invalid input: expected number, received string',
           },
           message: "Failed to update Project",

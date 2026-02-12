@@ -22,7 +22,7 @@ import { useCurrentUser } from '@/features/auth/ui/hooks/useAuth';
 import { MilestonesTab } from '@/features/milestones/ui/components/MilestonesTab';
 import { TeamMembersDialog } from '@/features/project-members/ui/components/TeamMembersDialog';
 import { TeamMembersSection } from '@/features/project-members/ui/components/TeamMembersSection';
-import { ProjectEditDialog } from '@/features/projects/ui/components/ProjectEditDialog';
+import { ProjectFormDialog } from '@/features/projects/ui/components/ProjectFormDialog';
 import { useProject } from '@/features/projects/ui/hooks/useProjects';
 import { canManage } from '@/shared/lib/auth/permissions';
 
@@ -212,7 +212,7 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         </Tabs>
 
         {/* Dialogs */}
-        <ProjectEditDialog
+        <ProjectFormDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           project={project}

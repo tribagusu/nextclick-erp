@@ -54,7 +54,7 @@ describe('EmployeeService', () => {
         position: 'Developer',
         department: 'Engineering',
         status: 'active',
-        salary: '75000',
+        salary: 75000,
       });
 
       expect(result.success).toBe(true);
