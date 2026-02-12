@@ -72,7 +72,7 @@ export function CommunicationFormDialog({ open, onOpenChange, onSuccess }: Commu
   const followUpRequired = watch('follow_up_required');
 
   // Filter projects by selected client
-  const filteredProjects = projectsData?.projects.filter(
+  const filteredProjects = projectsData?.data.filter(
     (p) => p.client_id === currentClientId
   ) ?? [];
 

@@ -6,24 +6,24 @@
 
 'use client';
 
-import { use, useState } from 'react';
+import { ArrowLeft, Calendar, Clock, DollarSign, Flag, Pencil } from 'lucide-react';
 import Link from 'next/link';
-import { ArrowLeft, Pencil, Calendar, DollarSign, Flag, Clock } from 'lucide-react';
+import { use, useState } from 'react';
 
+import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
-import { Skeleton } from '@/shared/components/ui/skeleton';
-import { Badge } from '@/shared/components/ui/badge';
 import { Progress } from '@/shared/components/ui/progress';
+import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
 
-import { useProject } from '@/features/projects/ui/hooks/useProjects';
-import { ProjectEditDialog } from '@/features/projects/ui/components/ProjectEditDialog';
-import { TeamMembersSection } from '@/features/project-members/ui/components/TeamMembersSection';
-import { TeamMembersDialog } from '@/features/project-members/ui/components/TeamMembersDialog';
-import { MilestonesTab } from '@/features/milestones/ui/components/MilestonesTab';
-import { canManage } from '@/shared/lib/auth/permissions';
 import { useCurrentUser } from '@/features/auth/ui/hooks/useAuth';
+import { MilestonesTab } from '@/features/milestones/ui/components/MilestonesTab';
+import { TeamMembersDialog } from '@/features/project-members/ui/components/TeamMembersDialog';
+import { TeamMembersSection } from '@/features/project-members/ui/components/TeamMembersSection';
+import { ProjectEditDialog } from '@/features/projects/ui/components/ProjectEditDialog';
+import { useProject } from '@/features/projects/ui/hooks/useProjects';
+import { canManage } from '@/shared/lib/auth/permissions';
 
 const statusColors: Record<string, string> = {
   draft: 'bg-blue-500',
@@ -87,7 +87,12 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
     );
   }
 
-  const paymentProgress = project.total_budget > 0 
+  const paymentProgress = 
+  project.total_budget && 
+  project.amount_paid && 
+  project.total_budget &&
+  project.total_budget > 0 && 
+  project.total_budget > 0
     ? Math.min(100, (project.amount_paid / project.total_budget) * 100)
     : 0;
 
@@ -168,11 +173,11 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-3">
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span>Budget: ${project.total_budget.toLocaleString()}</span>
+                  <span>Budget: ${project.total_budget?.toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <DollarSign className="h-4 w-4 text-green-500" />
-                  <span>Paid: ${project.amount_paid.toLocaleString()}</span>
+                  <span>Paid: ${project.amount_paid?.toLocaleString()}</span>
                 </div>
                 <div>
                   <div className="flex justify-between text-sm mb-1">

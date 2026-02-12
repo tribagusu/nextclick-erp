@@ -4,9 +4,10 @@
 
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PaginatedResponse } from '@/shared/base-feature/domain/base.types';
 import type { Project } from '@/shared/base-feature/domain/database.types';
-import type { ProjectListParams, ProjectListResponse, ProjectCreateInput, ProjectUpdateInput } from '../../domain/types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ProjectCreateInput, ProjectListParams, ProjectUpdateInput } from '../../domain/types';
 
 export const projectKeys = {
   all: ['projects'] as const,
@@ -16,14 +17,14 @@ export const projectKeys = {
   detail: (id: string) => [...projectKeys.details(), id] as const,
 };
 
-async function fetchProjects(params: ProjectListParams): Promise<ProjectListResponse> {
+async function fetchProjects(params: ProjectListParams): Promise<PaginatedResponse<Project>> {
   const searchParams = new URLSearchParams();
   if (params.page) searchParams.set('page', String(params.page));
   if (params.pageSize) searchParams.set('pageSize', String(params.pageSize));
   if (params.search) searchParams.set('search', params.search);
   if (params.status) searchParams.set('status', params.status);
   if (params.priority) searchParams.set('priority', params.priority);
-  if (params.clientId) searchParams.set('clientId', params.clientId);
+  if (params.client_id) searchParams.set('clientId', params.client_id);
   if (params.sortBy) searchParams.set('sortBy', params.sortBy);
   if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 

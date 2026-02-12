@@ -86,7 +86,7 @@ export class CommunicationRepository extends BaseRepository<CommunicationLog, Co
     const logData = log as CommunicationLog;
 
     const { data: clientData } = await this.dbClient
-      .from('clients')
+      .from(TableNames.CLIENT)
       .select('name')
       .eq('id', logData.client_id)
       .single();
@@ -94,7 +94,7 @@ export class CommunicationRepository extends BaseRepository<CommunicationLog, Co
     let projectName: string | null = null;
     if (logData.project_id) {
       const { data: projectData } = await this.dbClient
-        .from('projects')
+        .from(TableNames.PROJECT)
         .select('project_name')
         .eq('id', logData.project_id)
         .single();

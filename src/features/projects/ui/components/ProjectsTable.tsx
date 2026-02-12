@@ -97,7 +97,7 @@ export function ProjectsTable() {
 
       {/* Data Table */}
       <ProjectsDataTable
-        projects={data?.projects ?? []}
+        projects={data?.data ?? []}
         isLoading={isLoading}
         emptyMessage={emptyMessage}
         onRowClick={handleRowClick}

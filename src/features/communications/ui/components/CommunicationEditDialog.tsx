@@ -74,7 +74,7 @@ export function CommunicationEditDialog({ open, onOpenChange, communication, onS
   const followUpRequired = watch('follow_up_required');
 
   // Filter projects by selected client
-  const filteredProjects = projectsData?.projects.filter(
+  const filteredProjects = projectsData?.data.filter(
     (p) => p.client_id === currentClientId
   ) ?? [];
 

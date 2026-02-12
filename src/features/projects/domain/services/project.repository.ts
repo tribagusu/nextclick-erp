@@ -5,21 +5,23 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database, Project, Client } from '@/shared/base-feature/domain/database.types';
 import { BaseRepository } from '@/shared/base-feature/domain/base.repository';
-import type { ProjectCreateInput, ProjectListParams, ProjectListResponse, ProjectUpdateInput } from '../types';
+import type { ProjectCreateInput, ProjectListParams, ProjectUpdateInput } from '../types';
+import { PaginatedResponse } from '@/shared/base-feature/domain/base.types';
+import { TableNames } from '@/shared/app.constants';
 
 export class ProjectRepository extends BaseRepository<Project, ProjectCreateInput, ProjectUpdateInput> {
   constructor(dbClient: SupabaseClient<Database>) {
     super(dbClient, 'projects');
   }
 
-  async findAllPaginated(params: ProjectListParams = {}): Promise<ProjectListResponse> {
+  async findAllPaginated(params: ProjectListParams = {}): Promise<PaginatedResponse<Project>> {
     const {
       page = 1,
       pageSize = 10,
       search,
       status,
       priority,
-      clientId,
+      client_id,
       sortBy = 'created_at',
       sortOrder = 'desc',
     } = params;
@@ -27,7 +29,7 @@ export class ProjectRepository extends BaseRepository<Project, ProjectCreateInpu
     const offset = (page - 1) * pageSize;
 
     let query = this.dbClient
-      .from('projects')
+      .from(TableNames.PROJECT)
       .select('*', { count: 'exact' })
       .is('deleted_at', null);
 
@@ -40,8 +42,8 @@ export class ProjectRepository extends BaseRepository<Project, ProjectCreateInpu
     if (priority) {
       query = query.eq('priority', priority);
     }
-    if (clientId) {
-      query = query.eq('client_id', clientId);
+    if (client_id) {
+      query = query.eq('client_id', client_id);
     }
 
     const { data, count, error } = await query
@@ -51,7 +53,7 @@ export class ProjectRepository extends BaseRepository<Project, ProjectCreateInpu
     if (error) throw error;
 
     return {
-      projects: (data ?? []) as Project[],
+      data: (data ?? []) as Project[],
       total: count ?? 0,
       page,
       pageSize,
@@ -60,7 +62,7 @@ export class ProjectRepository extends BaseRepository<Project, ProjectCreateInpu
 
   async findByIdWithClient(id: string): Promise<(Project & { client_name: string }) | null> {
     const { data: project, error } = await this.dbClient
-      .from('projects')
+      .from(TableNames.PROJECT)
       .select('*')
       .eq('id', id)
       .is('deleted_at', null)
@@ -69,7 +71,7 @@ export class ProjectRepository extends BaseRepository<Project, ProjectCreateInpu
     if (error || !project) return null;
 
     const { data: clientData } = await this.dbClient
-      .from('clients')
+      .from(TableNames.CLIENT)
       .select('name')
       .eq('id', (project as Project).client_id)
       .single();
