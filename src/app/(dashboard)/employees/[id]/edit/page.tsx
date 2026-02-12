@@ -12,6 +12,7 @@ import Link from 'next/link';
 
 import { Button } from '@/shared/components/ui/button';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { EmployeeForm } from '@/features/employees/ui/components/EmployeeForm';
 import { useEmployee, useUpdateEmployee } from '@/features/employees/ui/hooks/useEmployees';
 
@@ -82,9 +83,11 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
           <p className="text-muted-foreground">Update employee information</p>
         </div>
       </div>
-      <div className="max-w-2xl">
-        <EmployeeForm defaultValues={employee} onSubmit={handleSubmit} isLoading={updateMutation.isPending} error={error} mode="edit" />
-      </div>
+      <FeatureErrorBoundary featureName="Edit Employee">
+        <div className="max-w-2xl">
+          <EmployeeForm defaultValues={employee} onSubmit={handleSubmit} isLoading={updateMutation.isPending} error={error} mode="edit" />
+        </div>
+      </FeatureErrorBoundary>
     </div>
   );
 }

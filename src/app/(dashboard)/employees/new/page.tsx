@@ -10,6 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 import { Button } from '@/shared/components/ui/button';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { EmployeeForm } from '@/features/employees/ui/components/EmployeeForm';
 import { useCreateEmployee } from '@/features/employees/ui/hooks/useEmployees';
 
@@ -39,9 +40,11 @@ export default function NewEmployeePage() {
           <p className="text-muted-foreground">Add a new team member</p>
         </div>
       </div>
-      <div className="max-w-2xl">
-        <EmployeeForm onSubmit={handleSubmit} isLoading={createMutation.isPending} error={error} mode="create" />
-      </div>
+      <FeatureErrorBoundary featureName="New Employee">
+        <div className="max-w-2xl">
+          <EmployeeForm onSubmit={handleSubmit} isLoading={createMutation.isPending} error={error} mode="create" />
+        </div>
+      </FeatureErrorBoundary>
     </div>
   );
 }

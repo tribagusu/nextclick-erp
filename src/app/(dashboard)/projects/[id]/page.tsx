@@ -10,6 +10,7 @@ import { ArrowLeft, Calendar, Clock, DollarSign, Flag, Pencil } from 'lucide-rea
 import Link from 'next/link';
 import { use, useState } from 'react';
 
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { Badge } from '@/shared/components/ui/badge';
 import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
@@ -122,8 +123,9 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         )}
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <FeatureErrorBoundary featureName="Project Details">
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="info">Project Info</TabsTrigger>
           <TabsTrigger value="milestones">Milestones</TabsTrigger>
@@ -207,20 +209,21 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         <TabsContent value="milestones" className="mt-6">
           <MilestonesTab projectId={id} canManage={userCanManage} />
         </TabsContent>
-      </Tabs>
+        </Tabs>
 
-      {/* Dialogs */}
-      <ProjectEditDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        project={project}
-      />
+        {/* Dialogs */}
+        <ProjectEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          project={project}
+        />
 
-      <TeamMembersDialog
-        open={teamDialogOpen}
-        onOpenChange={setTeamDialogOpen}
-        projectId={id}
-      />
+        <TeamMembersDialog
+          open={teamDialogOpen}
+          onOpenChange={setTeamDialogOpen}
+          projectId={id}
+        />
+      </FeatureErrorBoundary>
     </div>
   );
 }

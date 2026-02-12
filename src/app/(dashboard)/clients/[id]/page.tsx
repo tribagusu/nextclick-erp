@@ -12,6 +12,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Badge } from '@/shared/components/ui/badge';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 import { useClient } from '@/features/clients/ui/hooks/useClients';
 import { ClientEditDialog } from '@/features/clients/ui/components/ClientEditDialog';
@@ -82,7 +83,8 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <FeatureErrorBoundary featureName="Client Details">
+        <div className="grid gap-6 md:grid-cols-2">
         {/* Contact Information */}
         <Card>
           <CardHeader>
@@ -155,14 +157,15 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
             </CardContent>
           </Card>
         )}
-      </div>
+        </div>
 
-      {/* Edit Client Dialog */}
-      <ClientEditDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        client={client}
-      />
+        {/* Edit Client Dialog */}
+        <ClientEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          client={client}
+        />
+      </FeatureErrorBoundary>
     </div>
   );
 }

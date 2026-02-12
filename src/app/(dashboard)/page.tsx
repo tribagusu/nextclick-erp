@@ -9,6 +9,7 @@
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 import { useDashboard } from '@/features/dashboard/ui/hooks/useDashboard';
 import { DashboardMetrics } from '@/features/dashboard/ui/components/DashboardMetrics';
@@ -51,25 +52,27 @@ export default function DashboardPage() {
         <p className="text-muted-foreground">Overview of your business metrics</p>
       </div>
 
-      {/* Metrics Grid with structural placeholders */}
-      <DashboardMetrics metrics={metrics} isLoading={isLoading} />
+      <FeatureErrorBoundary featureName="Dashboard">
+        {/* Metrics Grid with structural placeholders */}
+        <DashboardMetrics metrics={metrics} isLoading={isLoading} />
 
-      {/* Projects and Activity */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {isLoading ? (
-          <>
-            <Skeleton className="col-span-2 h-64" />
-            <Skeleton className="h-64" />
-          </>
-        ) : (
-          <>
-            <div className="col-span-2">
-              <ProjectsOverview projects={recentProjects} />
-            </div>
-            <RecentActivityList activities={recentActivity} />
-          </>
-        )}
-      </div>
+        {/* Projects and Activity */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {isLoading ? (
+            <>
+              <Skeleton className="col-span-2 h-64" />
+              <Skeleton className="h-64" />
+            </>
+          ) : (
+            <>
+              <div className="col-span-2">
+                <ProjectsOverview projects={recentProjects} />
+              </div>
+              <RecentActivityList activities={recentActivity} />
+            </>
+          )}
+        </div>
+      </FeatureErrorBoundary>
     </div>
   );
 }

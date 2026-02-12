@@ -12,6 +12,7 @@ import Link from 'next/link';
 
 import { Button } from '@/shared/components/ui/button';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { MilestoneForm } from '@/features/milestones/ui/components/MilestoneForm';
 import { useMilestone, useUpdateMilestone } from '@/features/milestones/ui/hooks/useMilestones';
 
@@ -98,9 +99,11 @@ export default function EditMilestonePage({ params }: EditMilestonePageProps) {
           <p className="text-muted-foreground">Update milestone details</p>
         </div>
       </div>
-      <div className="max-w-3xl">
-        <MilestoneForm defaultValues={milestone} projects={projects} onSubmit={handleSubmit} isLoading={updateMutation.isPending} error={error} mode="edit" />
-      </div>
+      <FeatureErrorBoundary featureName="Edit Milestone">
+        <div className="max-w-3xl">
+          <MilestoneForm defaultValues={milestone} projects={projects} onSubmit={handleSubmit} isLoading={updateMutation.isPending} error={error} mode="edit" />
+        </div>
+      </FeatureErrorBoundary>
     </div>
   );
 }
