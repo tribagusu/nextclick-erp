@@ -5,7 +5,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '../../../../supabase/server';
 import { profileUpdateSchema, passwordChangeSchema } from '../domain/schemas';
-import type { Employee } from '@/shared/types/database.types';
+import type { Employee } from '@/shared/base-feature/domain/database.types';
 
 // =============================================================================
 // PROFILE HANDLERS
