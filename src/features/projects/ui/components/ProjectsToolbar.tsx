@@ -6,7 +6,7 @@
 
 'use client';
 
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Upload } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -26,14 +26,16 @@ interface ProjectsToolbarProps {
   status: ProjectStatus | 'all';
   onStatusChange: (value: ProjectStatus | 'all') => void;
   onAddClick: () => void;
+  onImportClick: () => void;
 }
 
-export function ProjectsToolbar({ 
-  search, 
-  onSearchChange, 
-  status, 
-  onStatusChange, 
-  onAddClick 
+export function ProjectsToolbar({
+  search,
+  onSearchChange,
+  status,
+  onStatusChange,
+  onAddClick,
+  onImportClick,
 }: ProjectsToolbarProps) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -59,6 +61,10 @@ export function ProjectsToolbar({
           <SelectItem value="cancelled">Cancelled</SelectItem>
         </SelectContent>
       </Select>
+      <Button variant="outline" onClick={onImportClick}>
+        <Upload className="mr-2 h-4 w-4" />
+        Import CSV
+      </Button>
       <Button onClick={onAddClick}>
         <Plus className="mr-2 h-4 w-4" />
         Add Project
