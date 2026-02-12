@@ -70,6 +70,19 @@ export class ClientRepository extends BaseRepository<Client, ClientCreateInput, 
   }
 
   /**
+   * Bulk insert multiple clients in a single database call.
+   */
+  async createMany(records: Partial<Client>[]): Promise<number> {
+    const { data, error } = await this.dbClient
+      .from('clients')
+      .insert(records as never[])
+      .select('id');
+
+    if (error) throw error;
+    return data?.length ?? 0;
+  }
+
+  /**
    * Get client with related projects count
    */
   async findByIdWithStats(id: string): Promise<Client & { projectCount: number } | null> {
