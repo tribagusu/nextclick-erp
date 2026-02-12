@@ -98,12 +98,12 @@ describe('Communication Handler', () => {
       expect(response.status).toBe(200);
       expect(await response.json()).toEqual({
         success: true,
-        data: [communicationMock],
-        meta: {
+        data: {
+          data: [communicationMock],
           total: 1,
           page: 2,
           pageSize: 1,
-        }
+        },
       });
     });
   });

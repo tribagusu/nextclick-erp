@@ -41,9 +41,9 @@ export const handleGetCommunications = buildApiPipeline<'/api/communications'>(
   };
 
   const service = await createCommunicationService(dbClient);
-  const { data, ...paginationDetails } = await service.getCommunications({ ...baseGetAllParams, ...filterParams });
+  const result = await service.getCommunications({ ...baseGetAllParams, ...filterParams });
 
-  return successResponse(data, paginationDetails);
+  return successResponse(result);
 });
 
 export const handleGetCommunication = buildApiPipeline<'/api/communications/[id]'>(
