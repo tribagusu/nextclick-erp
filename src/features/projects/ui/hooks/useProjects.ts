@@ -8,6 +8,7 @@ import { PaginatedResponse } from '@/shared/base-feature/domain/base.types';
 import type { Project } from '@/shared/base-feature/domain/database.types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ProjectCreateInput, ProjectListParams, ProjectUpdateInput } from '../../domain/types';
+import type { ProjectCsvData } from '../../domain/schemas';
 
 export const projectKeys = {
   all: ['projects'] as const,
@@ -117,6 +118,30 @@ export function useDeleteProject() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+}
+
+async function importProjects(rows: ProjectCsvData[]): Promise<{ imported: number }> {
+  const response = await fetch('/api/projects/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rows }),
+  });
+  if (!response.ok) {
+    const json = await response.json();
+    throw new Error(json.error?.message || 'Failed to import projects');
+  }
+  const json = await response.json();
+  return json.data;
+}
+
+export function useImportProjects() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: importProjects,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
     },

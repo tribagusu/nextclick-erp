@@ -11,6 +11,9 @@ import {
   ErrorCodes,
   NotFoundError,
   successResponse,
+  validationErrorResponse,
+  unauthorizedResponse,
+  internalErrorResponse,
   validatePartialSchema,
   validateSchema
 } from '@/shared/base-feature/api/api-utils';
@@ -141,6 +144,80 @@ export const handleDeleteProject = buildApiPipeline<'/api/projects/[id]'>(
 
   return successResponse({ message: `${Resources.PROJECT} deleted successfully` });
 });
+
+/**
+ * Bulk import projects from CSV data.
+ * Resolves client_name → client_id using case-insensitive lookup.
+ */
+export async function handleImportProjects(request: Request) {
+  try {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return unauthorizedResponse();
+    }
+
+    const body = await request.json();
+    const rows = body.rows;
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return validationErrorResponse('No rows provided for import');
+    }
+
+    if (rows.length > 500) {
+      return validationErrorResponse('Maximum 500 rows per import');
+    }
+
+    // Fetch all active clients for name → id resolution
+    const { data: clients, error: clientsError } = await supabase
+      .from('clients')
+      .select('id, name')
+      .is('deleted_at', null);
+
+    if (clientsError) {
+      console.error('Failed to fetch clients for import:', clientsError);
+      return internalErrorResponse();
+    }
+
+    // Build case-insensitive name → id map
+    const clientMap = new Map<string, string>();
+    for (const c of (clients ?? []) as { id: string; name: string }[]) {
+      clientMap.set(c.name.toLowerCase(), c.id);
+    }
+
+    // Resolve client_name → client_id for each row
+    const resolvedRows = [];
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const clientName = row.client_name?.trim();
+      if (!clientName) {
+        return validationErrorResponse(`Row ${i + 1}: Client name is required`);
+      }
+
+      const clientId = clientMap.get(clientName.toLowerCase());
+      if (!clientId) {
+        return validationErrorResponse(`Row ${i + 1}: Client "${clientName}" not found`);
+      }
+
+      // Replace client_name with client_id
+      const { client_name: _, ...rest } = row;
+      resolvedRows.push({ ...rest, client_id: clientId });
+    }
+
+    const service = new ProjectService(new ProjectRepository(supabase));
+    const result = await service.importProjects(resolvedRows);
+
+    if (!result.success) {
+      return validationErrorResponse(result.error || 'Failed to import projects');
+    }
+
+    return successResponse({ imported: result.imported }, undefined, 201);
+  } catch (error) {
+    console.error('Import projects error:', error);
+    return internalErrorResponse();
+  }
+}
 
 async function createProjectService(dbClient: SupabaseClient | undefined) {
   return new ProjectService(new ProjectRepository(dbClient ?? await createClient()));

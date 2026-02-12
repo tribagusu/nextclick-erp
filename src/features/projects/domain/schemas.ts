@@ -96,6 +96,31 @@ export const projectApiSchema = z.object({
 export type ProjectApiData = z.infer<typeof projectApiSchema>;
 
 // =============================================================================
+// CSV IMPORT SCHEMA (uses client_name instead of client_id)
+// =============================================================================
+
+export const projectCsvSchema = z.object({
+  project_name: z
+    .string()
+    .min(1, 'Project name is required')
+    .min(2, 'Project name must be at least 2 characters'),
+  client_name: z.string().min(1, 'Client name is required'),
+  description: z.string().nullable().optional(),
+  start_date: z.string().nullable().optional(),
+  end_date: z.string().nullable().optional(),
+  status: z.enum(projectStatusOptions, {
+    message: 'Please select a valid project status',
+  }).default('draft'),
+  priority: z.enum(projectPriorityOptions, {
+    message: 'Please select a priority level',
+  }).default('medium'),
+  total_budget: z.number().nullable().optional(),
+  payment_terms: z.string().nullable().optional(),
+});
+
+export type ProjectCsvData = z.infer<typeof projectCsvSchema>;
+
+// =============================================================================
 // Transform form data to API format
 // =============================================================================
 

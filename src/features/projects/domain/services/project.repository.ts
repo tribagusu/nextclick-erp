@@ -60,6 +60,19 @@ export class ProjectRepository extends BaseRepository<Project, ProjectCreateInpu
     };
   }
 
+  /**
+   * Bulk insert multiple projects in a single database call.
+   */
+  async createMany(records: Partial<Project>[]): Promise<number> {
+    const { data, error } = await this.dbClient
+      .from(TableNames.PROJECT)
+      .insert(records as never[])
+      .select('id');
+
+    if (error) throw error;
+    return data?.length ?? 0;
+  }
+
   async findByIdWithClient(id: string): Promise<(Project & { client_name: string }) | null> {
     const { data: project, error } = await this.dbClient
       .from(TableNames.PROJECT)
