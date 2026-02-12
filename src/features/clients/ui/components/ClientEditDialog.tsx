@@ -21,12 +21,8 @@ import { FormDialog } from '@/shared/components/ui/form-dialog';
 
 import { clientSchema, type ClientFormData, transformClientInput } from '../../domain/schemas';
 import { useUpdateClient } from '../hooks/useClients';
-<<<<<<< HEAD
 import { sanitizeFormData } from '@/shared/utils/sanitize';
-import type { Client } from '@/shared/types/database.types';
-=======
 import type { Client } from '@/shared/base-feature/domain/database.types';
->>>>>>> dev
 
 interface ClientEditDialogProps {
   open: boolean;

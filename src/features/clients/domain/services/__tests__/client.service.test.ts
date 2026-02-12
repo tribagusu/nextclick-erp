@@ -49,6 +49,8 @@ describe('ClientService', () => {
       const result = await service.createClient({
         name: 'Test Client',
         email: 'test@example.com',
+        company_name: 'Test Corp',
+        address: '123 Main St',
       });
 
       expect(result.success).toBe(true);

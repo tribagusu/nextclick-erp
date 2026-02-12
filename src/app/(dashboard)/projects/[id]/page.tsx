@@ -206,21 +206,12 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         </TabsContent>
         </Tabs>
 
-<<<<<<< HEAD
-      {/* Dialogs */}
-      <ProjectFormDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        project={project}
-      />
-=======
         {/* Dialogs */}
-        <ProjectEditDialog
+        <ProjectFormDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           project={project}
         />
->>>>>>> dev
 
         <TeamMembersDialog
           open={teamDialogOpen}

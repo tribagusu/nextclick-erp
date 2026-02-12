@@ -36,7 +36,7 @@ import {
 import { useCreateProject, useUpdateProject } from '../hooks/useProjects';
 import { useClients } from '@/features/clients/ui/hooks/useClients';
 import { sanitizeFormData } from '@/shared/utils/sanitize';
-import type { Project } from '@/shared/types/database.types';
+import type { Project } from '@/shared/base-feature/domain/database.types';
 
 interface ProjectFormDialogProps {
   open: boolean;
