@@ -12,6 +12,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Badge } from '@/shared/components/ui/badge';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 import { useEmployee } from '@/features/employees/ui/hooks/useEmployees';
 
@@ -84,7 +85,8 @@ export default function EmployeeDetailPage({ params }: EmployeeDetailPageProps) 
         </Link>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <FeatureErrorBoundary featureName="Employee Details">
+        <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Contact Information</CardTitle>
@@ -145,7 +147,8 @@ export default function EmployeeDetailPage({ params }: EmployeeDetailPageProps) 
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </FeatureErrorBoundary>
     </div>
   );
 }

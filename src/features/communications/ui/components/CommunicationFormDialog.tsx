@@ -82,12 +82,12 @@ export function CommunicationFormDialog({ open, onOpenChange, onSuccess }: Commu
     try {
       await createMutation.mutateAsync({
         client_id: data.client_id,
-        project_id: data.project_id || undefined,
+        project_id: data.project_id || null,
         date: data.date,
         mode: data.mode,
         summary: sanitizeString(data.summary),
         follow_up_required: data.follow_up_required ?? false,
-        follow_up_date: data.follow_up_date || undefined,
+        follow_up_date: data.follow_up_date || null,
       });
       toast.success('Communication log created successfully');
       reset();

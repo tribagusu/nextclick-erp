@@ -4,7 +4,7 @@
 
 import { vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from '@/shared/types/database.types';
+import type { Database } from '@/shared/base-feature/domain/database.types';
 
 export function createMockSupabaseClient(overrides: Partial<{
   selectResult: unknown;

@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui
 import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 
 import { clientSchema, type ClientFormData, transformClientInput } from '../../domain/schemas';
-import type { Client } from '@/shared/types/database.types';
+import type { Client } from '@/shared/base-feature/domain/database.types';
 
 interface ClientFormProps {
   defaultValues?: Partial<Client>;

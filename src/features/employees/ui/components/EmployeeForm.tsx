@@ -22,8 +22,12 @@ import {
 } from '@/shared/components/ui/select';
 
 import { employeeFormSchema, employeeStatusOptions, type EmployeeFormData, transformEmployeeInput } from '../../domain/schemas';
+<<<<<<< HEAD
 import { sanitizeFormData } from '@/shared/utils/sanitize';
 import type { Employee } from '@/shared/types/database.types';
+=======
+import type { Employee } from '@/shared/base-feature/domain/database.types';
+>>>>>>> dev
 
 interface EmployeeFormProps {
   defaultValues?: Partial<Employee>;

@@ -3,7 +3,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, ProjectMilestone } from '@/shared/types/database.types';
+import type { Database, ProjectMilestone } from '@/shared/base-feature/domain/database.types';
 import { MilestoneRepository } from './milestone.repository';
 import type { MilestoneListParams, MilestoneListResponse, MilestoneCreateInput, MilestoneUpdateInput } from '../types';
 import { milestoneApiSchema } from '../schemas';

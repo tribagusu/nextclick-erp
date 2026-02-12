@@ -2,130 +2,146 @@
  * Communications API Handlers
  */
 
-import { createClient } from '../../../../supabase/server';
-import { CommunicationService } from '../domain/services/communication.service';
+import { CommunicationRepository } from '@/features/communications/domain/services/communication.repository';
+import { CommunicationListParams } from '@/features/communications/domain/types';
+import { Actions, Resources } from '@/shared/app.constants';
 import {
+  buildApiPipeline,
+  ErrorCodes,
+  NotFoundError,
   successResponse,
-  validationErrorResponse,
-  unauthorizedResponse,
-  notFoundResponse,
-  internalErrorResponse,
-  UnauthorizedError,
-  ValidationError,
-  handleApiError,
-} from '@/shared/lib/api/api-utils';
-import type { CommunicationMode } from '@/shared/types/database.types';
+  validatePartialSchema,
+  validateSchema
+} from '@/shared/base-feature/api/api-utils';
+import { withAuth } from '@/shared/base-feature/api/authentication.wrapper';
+import { withErrorHandling } from '@/shared/base-feature/api/error-handling.wrapper';
+import { RequestContext, withRequestContext } from '@/shared/base-feature/api/request-context.wrapper';
+import { GetAllParams } from '@/shared/base-feature/domain/base.types';
+import type { CommunicationLog, CommunicationMode } from '@/shared/base-feature/domain/database.types';
+import { uuidSchema } from '@/shared/base-feature/domain/schemas';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '../../../../supabase/server';
 import { communicationApiSchema } from '../domain/schemas';
-import { Actions, Resources } from '@/shared/lib/app.constants';
+import { CommunicationService } from '../domain/services/communication.service';
 
-export async function handleGetCommunications(request: Request) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
+export const handleGetCommunications = buildApiPipeline<'/api/communications'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (request, _routeCtx) => {
+  const url = request.nextUrl
+  const { dbClient } = RequestContext.get()
+  const baseGetAllParams = new GetAllParams(url);
+  const filterParams: CommunicationListParams = {
+    mode: (url.searchParams.get('mode') as CommunicationMode) ?? undefined,
+    client_id: url.searchParams.get('clientId') ?? undefined,
+    project_id: url.searchParams.get('projectId') ?? undefined,
+    follow_up_required: url.searchParams.get('followUpRequired') === 'true' ? true : undefined,
+    sortBy: (url.searchParams.get('sortBy') as keyof CommunicationLog) ?? 'date',
+  };
 
-    const url = new URL(request.url);
-    const params = {
-      page: parseInt(url.searchParams.get('page') ?? '1'),
-      pageSize: parseInt(url.searchParams.get('pageSize') ?? '10'),
-      search: url.searchParams.get('search') ?? undefined,
-      mode: (url.searchParams.get('mode') as CommunicationMode) ?? undefined,
-      clientId: url.searchParams.get('clientId') ?? undefined,
-      projectId: url.searchParams.get('projectId') ?? undefined,
-      followUpRequired: url.searchParams.get('followUpRequired') === 'true' ? true : undefined,
-      sortBy: (url.searchParams.get('sortBy') as 'date' | 'created_at') ?? 'date',
-      sortOrder: (url.searchParams.get('sortOrder') as 'asc' | 'desc') ?? 'desc',
-    };
+  const service = await createCommunicationService(dbClient);
+  const { data, ...paginationDetails } = await service.getCommunications({ ...baseGetAllParams, ...filterParams });
 
-    const service = new CommunicationService(supabase);
-    const data = await service.getCommunications(params);
-    return successResponse(data);
-  } catch (error) {
-    console.error('Get communications error:', error);
-    return internalErrorResponse();
+  return successResponse(data, paginationDetails);
+});
+
+export const handleGetCommunication = buildApiPipeline<'/api/communications/[id]'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (_request, routeCtx) => {
+  const { dbClient } = RequestContext.get()
+  const { id } = validateSchema(
+    Resources.COMMUNICATION_LOG,
+    Actions.READ,
+    await routeCtx.params,
+    uuidSchema,
+    ErrorCodes.INVALID_ROUTE_PARAM
+  );
+
+  const service = await createCommunicationService(dbClient);
+  const communication = await service.getCommunication(id);
+
+  if (!communication) throw new NotFoundError(Resources.COMMUNICATION_LOG);
+
+  return successResponse(communication);
+});
+
+export const handleCreateCommunication = buildApiPipeline<'/api/communications'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (request) => {
+  const { dbClient } = RequestContext.get()
+  const input = validateSchema(
+    Resources.COMMUNICATION_LOG,
+    Actions.CREATE,
+    await request.json(),
+    communicationApiSchema,
+  );
+
+  let communication = null;
+  if (input) {
+    const service = await createCommunicationService(dbClient);
+    communication = await service.create(input);
   }
-}
 
-export async function handleGetCommunication(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
+  return successResponse(communication, undefined, 201);
 
-    const { id } = await params;
-    const service = new CommunicationService(supabase);
-    const communication = await service.getCommunication(id);
+})
 
-    if (!communication) return notFoundResponse('Communication log');
-    return successResponse(communication);
-  } catch (error) {
-    console.error('Get communication error:', error);
-    return internalErrorResponse();
+export const handleUpdateCommunication = buildApiPipeline<'/api/communications/[id]'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (request, routeCtx) => {
+  const { dbClient } = RequestContext.get()
+  const { id } = validateSchema(
+    Resources.COMMUNICATION_LOG,
+    Actions.UPDATE,
+    await routeCtx.params,
+    uuidSchema,
+    ErrorCodes.INVALID_ROUTE_PARAM
+  );
+
+  const input = validatePartialSchema(
+    Resources.COMMUNICATION_LOG,
+    Actions.UPDATE,
+    await request.json(),
+    communicationApiSchema,
+  );
+
+  let communication = null;
+  if (input) {
+    const service = await createCommunicationService(dbClient);
+    communication = await service.update(id, input);
   }
-}
 
-export async function handleUpdateCommunication(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
+  return successResponse(communication);
 
-    const { id } = await params;
-    const body = await request.json();
-    const service = new CommunicationService(supabase);
-    const result = await service.updateCommunication(id, body);
+})
 
-    if (!result.success) {
-      return validationErrorResponse(result.error || 'Failed to update communication log');
-    }
-    return successResponse(result.communication);
-  } catch (error) {
-    console.error('Update communication error:', error);
-    return internalErrorResponse();
-  }
-}
+export const handleDeleteCommunication = buildApiPipeline<'/api/communications/[id]'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (_request, routeCtx) => {
+  const { dbClient } = RequestContext.get()
+  const { id } = validateSchema(
+    Resources.COMMUNICATION_LOG,
+    Actions.DELETE,
+    await routeCtx.params,
+    uuidSchema,
+    ErrorCodes.INVALID_ROUTE_PARAM
+  );
 
-export async function handleDeleteCommunication(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
+  const service = await createCommunicationService(dbClient);
+  await service.delete(id)
 
-    const { id } = await params;
-    const service = new CommunicationService(supabase);
-    const result = await service.deleteCommunication(id);
+  return successResponse({ message: `${Resources.COMMUNICATION_LOG} deleted successfully` });
+});
 
-    if (!result.success) {
-      return validationErrorResponse(result.error || 'Failed to delete communication log');
-    }
-    return successResponse({ message: 'Communication log deleted successfully' });
-  } catch (error) {
-    console.error('Delete communication error:', error);
-    return internalErrorResponse();
-  }
-}
-
-export async function handleCreateCommunication(request: Request) {
-  try {
-    const { service, input } = await validateAndGetContext(request);
-    const communication = await service.createCommunication(input.data);
-    return successResponse(communication, undefined, 201);
-  } catch (error) {
-    return handleApiError(error);
-  }
-}
-
-async function validateAndGetContext(request: Request) {
-    const dbClient = await createClient();
-    const { data: { user } } = await dbClient.auth.getUser();
-    
-    if (!user) throw new UnauthorizedError();
-
-    const input = communicationApiSchema.safeParse(await request.json());
-    if (!input.success) {
-      throw new ValidationError(Resources.COMMUNICATION_LOG, Actions.CREATE,input.error)
-    }
-
-    const service = new CommunicationService(dbClient);
-  return { service, input }
+async function createCommunicationService(dbClient: SupabaseClient | undefined) {
+  return new CommunicationService(new CommunicationRepository(dbClient ?? await createClient()));
 }

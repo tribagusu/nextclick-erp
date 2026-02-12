@@ -2,7 +2,7 @@
  * Milestones Feature - Domain Types
  */
 
-import type { ProjectMilestone, MilestoneStatus } from '@/shared/types/database.types';
+import type { ProjectMilestone, MilestoneStatus } from '@/shared/base-feature/domain/database.types';
 
 export type MilestoneRow = ProjectMilestone;
 

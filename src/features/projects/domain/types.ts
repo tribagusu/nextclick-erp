@@ -2,7 +2,7 @@
  * Projects Feature - Domain Types
  */
 
-import type { Project, ProjectStatus, ProjectPriority } from '@/shared/types/database.types';
+import type { Project, ProjectStatus, ProjectPriority } from '@/shared/base-feature/domain/database.types';
 
 export type ProjectRow = Project;
 

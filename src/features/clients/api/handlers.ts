@@ -12,7 +12,7 @@ import {
   unauthorizedResponse,
   notFoundResponse,
   internalErrorResponse,
-} from '@/shared/lib/api/api-utils';
+} from '@/shared/base-feature/api/api-utils';
 
 /**
  * Get all clients (paginated)

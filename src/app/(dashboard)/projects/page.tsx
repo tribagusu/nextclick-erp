@@ -1,9 +1,7 @@
-import { ProjectsTable } from '@/features/projects/ui/components/ProjectsTable';
+'use client';
 
-export const metadata = {
-  title: 'Projects | Next Click ERP',
-  description: 'Manage your projects',
-};
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { ProjectsTable } from '@/features/projects/ui/components/ProjectsTable';
 
 export default function ProjectsPage() {
   return (
@@ -12,7 +10,9 @@ export default function ProjectsPage() {
         <h1 className="text-3xl font-bold">Projects</h1>
         <p className="text-muted-foreground">Manage your project portfolio</p>
       </div>
-      <ProjectsTable />
+      <FeatureErrorBoundary featureName="Projects">
+        <ProjectsTable />
+      </FeatureErrorBoundary>
     </div>
   );
 }

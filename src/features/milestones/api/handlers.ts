@@ -10,8 +10,8 @@ import {
   unauthorizedResponse,
   notFoundResponse,
   internalErrorResponse,
-} from '@/shared/lib/api/api-utils';
-import type { MilestoneStatus } from '@/shared/types/database.types';
+} from '@/shared/base-feature/api/api-utils';
+import type { MilestoneStatus } from '@/shared/base-feature/domain/database.types';
 
 export async function handleGetMilestones(request: Request) {
   try {
