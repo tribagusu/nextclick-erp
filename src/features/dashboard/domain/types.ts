@@ -26,7 +26,7 @@ export interface ProjectSummary {
   status: string;
   priority: string;
   progress: number; // 0-100 percentage
-  dueDate: string | null;
+  dueDate?: string | null;
 }
 
 export interface ClientStats {

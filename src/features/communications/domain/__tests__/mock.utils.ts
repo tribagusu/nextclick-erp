@@ -3,8 +3,9 @@
  */
 
 import { communicationModeOptions } from "@/features/communications/domain/schemas";
+import { CommunicationLog } from "@/shared/base-feature/domain/database.types";
 
-export function getValidCommunicationMock() {
+export function getValidCommunicationMock(): CommunicationLog {
   return {
     id: crypto.randomUUID(),
     client_id: 'client-1',

@@ -7,18 +7,17 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { Button } from '@/shared/components/ui/button';
+import { FormDialog } from '@/shared/components/ui/form-dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
-import { Textarea } from '@/shared/components/ui/textarea';
-import { Alert, AlertDescription } from '@/shared/components/ui/alert';
-import { FormDialog } from '@/shared/components/ui/form-dialog';
 import {
   Select,
   SelectContent,
@@ -26,17 +25,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select';
+import { Textarea } from '@/shared/components/ui/textarea';
 
-import { 
-  projectFormSchema, 
-  projectStatusOptions, 
-  projectPriorityOptions, 
+import { useClients } from '@/features/clients/ui/hooks/useClients';
+import { Project } from '@/shared/base-feature/domain/database.types';
+import { sanitizeFormData } from '@/shared/utils/sanitize';
+import {
+  projectFormSchema,
+  projectPriorityOptions,
+  projectStatusOptions,
   type ProjectFormData,
 } from '../../domain/schemas';
 import { useCreateProject, useUpdateProject } from '../hooks/useProjects';
-import { useClients } from '@/features/clients/ui/hooks/useClients';
-import { sanitizeFormData } from '@/shared/utils/sanitize';
-import type { Project } from '@/shared/base-feature/domain/database.types';
 
 interface ProjectFormDialogProps {
   open: boolean;

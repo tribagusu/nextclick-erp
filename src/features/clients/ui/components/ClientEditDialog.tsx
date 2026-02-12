@@ -6,23 +6,23 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { Button } from '@/shared/components/ui/button';
+import { FormDialog } from '@/shared/components/ui/form-dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
-import { Alert, AlertDescription } from '@/shared/components/ui/alert';
-import { FormDialog } from '@/shared/components/ui/form-dialog';
 
-import { clientSchema, type ClientFormData, transformClientInput } from '../../domain/schemas';
-import { useUpdateClient } from '../hooks/useClients';
-import { sanitizeFormData } from '@/shared/utils/sanitize';
 import type { Client } from '@/shared/base-feature/domain/database.types';
+import { sanitizeFormData } from '@/shared/utils/sanitize';
+import { clientSchema, transformClientInput, type ClientFormData } from '../../domain/schemas';
+import { useUpdateClient } from '../hooks/useClients';
 
 interface ClientEditDialogProps {
   open: boolean;

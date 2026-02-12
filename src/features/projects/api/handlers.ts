@@ -2,119 +2,146 @@
  * Projects API Handlers
  */
 
+import { projectApiSchema } from '@/features/projects/domain/schemas';
+import { ProjectRepository } from '@/features/projects/domain/services/project.repository';
+import { ProjectListParams } from '@/features/projects/domain/types';
+import { Actions, Resources } from '@/shared/app.constants';
+import {
+  buildApiPipeline,
+  ErrorCodes,
+  NotFoundError,
+  successResponse,
+  validatePartialSchema,
+  validateSchema
+} from '@/shared/base-feature/api/api-utils';
+import { withAuth } from '@/shared/base-feature/api/authentication.wrapper';
+import { withErrorHandling } from '@/shared/base-feature/api/error-handling.wrapper';
+import { RequestContext, withRequestContext } from '@/shared/base-feature/api/request-context.wrapper';
+import { GetAllParams } from '@/shared/base-feature/domain/base.types';
+import type { ProjectPriority, ProjectStatus } from '@/shared/base-feature/domain/database.types';
+import { uuidSchema } from '@/shared/base-feature/domain/schemas';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { createClient } from '../../../../supabase/server';
 import { ProjectService } from '../domain/services/project.service';
-import {
-  successResponse,
-  validationErrorResponse,
-  unauthorizedResponse,
-  notFoundResponse,
-  internalErrorResponse,
-} from '@/shared/base-feature/api/api-utils';
-import type { ProjectStatus, ProjectPriority } from '@/shared/base-feature/domain/database.types';
 
-export async function handleGetProjects(request: Request) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
 
-    const url = new URL(request.url);
-    const params = {
-      page: parseInt(url.searchParams.get('page') ?? '1'),
-      pageSize: parseInt(url.searchParams.get('pageSize') ?? '10'),
-      search: url.searchParams.get('search') ?? undefined,
-      status: (url.searchParams.get('status') as ProjectStatus) ?? undefined,
-      priority: (url.searchParams.get('priority') as ProjectPriority) ?? undefined,
-      clientId: url.searchParams.get('clientId') ?? undefined,
-      sortBy: (url.searchParams.get('sortBy') as 'project_name' | 'created_at') ?? 'created_at',
-      sortOrder: (url.searchParams.get('sortOrder') as 'asc' | 'desc') ?? 'desc',
-    };
+export const handleGetProjects = buildApiPipeline<'/api/projects'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (request, _routeCtx) => {
+  const url = request.nextUrl
+  const { dbClient } = RequestContext.get()
+  const baseGetAllParams = new GetAllParams(url);
+  const filterParams: ProjectListParams = {
+    status: (url.searchParams.get('status') as ProjectStatus) ?? undefined,
+    priority: (url.searchParams.get('priority') as ProjectPriority) ?? undefined,
+    client_id: url.searchParams.get('clientId') ?? undefined,
+    sortBy: (url.searchParams.get('sortBy') as 'project_name' | 'created_at') ?? 'created_at',
+  };
 
-    const service = new ProjectService(supabase);
-    const data = await service.getProjects(params);
-    return successResponse(data);
-  } catch (error) {
-    console.error('Get projects error:', error);
-    return internalErrorResponse();
+  const service = await createProjectService(dbClient);
+  const { data, ...paginationDetails } = await service.getProjects({ ...baseGetAllParams, ...filterParams });
+
+  return successResponse(data, paginationDetails);
+});
+
+export const handleGetProject = buildApiPipeline<'/api/projects/[id]'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (request, routeCtx) => {
+  const { dbClient } = RequestContext.get()
+  const { id } = validateSchema(
+    Resources.PROJECT,
+    Actions.READ,
+    await routeCtx.params,
+    uuidSchema,
+    ErrorCodes.INVALID_ROUTE_PARAM
+  );
+
+  const service = await createProjectService(dbClient);
+  const project = await service.getProject(id);
+
+  if (!project) throw new NotFoundError(Resources.PROJECT);
+
+  return successResponse(project);
+});
+
+export const handleCreateProject = buildApiPipeline<'/api/projects'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (request) => {
+  const { dbClient } = RequestContext.get()
+  const input = validateSchema(
+    Resources.PROJECT,
+    Actions.CREATE,
+    await request.json(),
+    projectApiSchema,
+  );
+
+  let project = null;
+  if (input) {
+    const service = await createProjectService(dbClient);
+    project = await service.create(input);
   }
-}
 
-export async function handleGetProject(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
+  return successResponse(project, undefined, 201);
 
-    const { id } = await params;
-    const service = new ProjectService(supabase);
-    const project = await service.getProject(id);
+})
 
-    if (!project) return notFoundResponse('Project');
-    return successResponse(project);
-  } catch (error) {
-    console.error('Get project error:', error);
-    return internalErrorResponse();
+export const handleUpdateProject = buildApiPipeline<'/api/projects/[id]'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (request, routeCtx) => {
+  const { dbClient } = RequestContext.get()
+  const { id } = validateSchema(
+    Resources.PROJECT,
+    Actions.UPDATE,
+    await routeCtx.params,
+    uuidSchema,
+    ErrorCodes.INVALID_ROUTE_PARAM
+  );
+
+  const input = validatePartialSchema(
+    Resources.PROJECT,
+    Actions.UPDATE,
+    await request.json(),
+    projectApiSchema,
+  );
+
+  let project = null;
+  if (input) {
+    const service = await createProjectService(dbClient);
+    project = await service.update(id, input);
   }
-}
 
-export async function handleCreateProject(request: Request) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
+  return successResponse(project);
 
-    const body = await request.json();
-    const service = new ProjectService(supabase);
-    const result = await service.createProject(body);
+})
 
-    if (!result.success) {
-      return validationErrorResponse(result.error || 'Failed to create project');
-    }
-    return successResponse(result.project, undefined, 201);
-  } catch (error) {
-    console.error('Create project error:', error);
-    return internalErrorResponse();
-  }
-}
+export const handleDeleteProject = buildApiPipeline<'/api/projects/[id]'>(
+  withRequestContext(),
+  withErrorHandling(),
+  withAuth()
+)(async (_request, routeCtx) => {
+  const { dbClient } = RequestContext.get()
+  const { id } = validateSchema(
+    Resources.PROJECT,
+    Actions.DELETE,
+    await routeCtx.params,
+    uuidSchema,
+    ErrorCodes.INVALID_ROUTE_PARAM
+  );
 
-export async function handleUpdateProject(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
+  const service = await createProjectService(dbClient);
+  await service.delete(id)
 
-    const { id } = await params;
-    const body = await request.json();
-    const service = new ProjectService(supabase);
-    const result = await service.updateProject(id, body);
+  return successResponse({ message: `${Resources.PROJECT} deleted successfully` });
+});
 
-    if (!result.success) {
-      return validationErrorResponse(result.error || 'Failed to update project');
-    }
-    return successResponse(result.project);
-  } catch (error) {
-    console.error('Update project error:', error);
-    return internalErrorResponse();
-  }
-}
-
-export async function handleDeleteProject(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return unauthorizedResponse();
-
-    const { id } = await params;
-    const service = new ProjectService(supabase);
-    const result = await service.deleteProject(id);
-
-    if (!result.success) {
-      return validationErrorResponse(result.error || 'Failed to delete project');
-    }
-    return successResponse({ message: 'Project deleted successfully' });
-  } catch (error) {
-    console.error('Delete project error:', error);
-    return internalErrorResponse();
-  }
+async function createProjectService(dbClient: SupabaseClient | undefined) {
+  return new ProjectService(new ProjectRepository(dbClient ?? await createClient()));
 }

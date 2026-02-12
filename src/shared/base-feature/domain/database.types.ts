@@ -63,15 +63,15 @@ export interface Client extends BaseEntity {
 export interface Project extends BaseEntity {
   client_id: string;
   project_name: string;
-  description: string | null;
-  start_date: string | null;
-  end_date: string | null;
+  description?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
   status: ProjectStatus;
   priority: ProjectPriority;
-  total_budget: number;
-  amount_paid: number;
-  payment_terms: string | null;
-  last_payment_date: string | null;
+  total_budget?: number | null;
+  amount_paid?: number | null;
+  payment_terms?: string | null;
+  last_payment_date?: string | null;
 }
 
 export interface ProjectEmployee {
