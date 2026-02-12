@@ -3,31 +3,33 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Project, ProjectStatus, ProjectPriority, Client } from '@/shared/types/database.types';
-import { BaseRepository } from '@/shared/lib/api/base-repository';
-import type { ProjectListParams, ProjectListResponse } from '../types';
+import type { Database, Project, Client } from '@/shared/base-feature/domain/database.types';
+import { BaseRepository } from '@/shared/base-feature/domain/base.repository';
+import type { ProjectCreateInput, ProjectListParams, ProjectUpdateInput } from '../types';
+import { PaginatedResponse } from '@/shared/base-feature/domain/base.types';
+import { TableNames } from '@/shared/app.constants';
 
-export class ProjectRepository extends BaseRepository<Project> {
-  constructor(client: SupabaseClient<Database>) {
-    super(client, 'projects');
+export class ProjectRepository extends BaseRepository<Project, ProjectCreateInput, ProjectUpdateInput> {
+  constructor(dbClient: SupabaseClient<Database>) {
+    super(dbClient, 'projects');
   }
 
-  async findAllPaginated(params: ProjectListParams = {}): Promise<ProjectListResponse> {
+  async findAllPaginated(params: ProjectListParams = {}): Promise<PaginatedResponse<Project>> {
     const {
       page = 1,
       pageSize = 10,
       search,
       status,
       priority,
-      clientId,
+      client_id,
       sortBy = 'created_at',
       sortOrder = 'desc',
     } = params;
 
     const offset = (page - 1) * pageSize;
 
-    let query = this.client
-      .from('projects')
+    let query = this.dbClient
+      .from(TableNames.PROJECT)
       .select('*', { count: 'exact' })
       .is('deleted_at', null);
 
@@ -40,8 +42,8 @@ export class ProjectRepository extends BaseRepository<Project> {
     if (priority) {
       query = query.eq('priority', priority);
     }
-    if (clientId) {
-      query = query.eq('client_id', clientId);
+    if (client_id) {
+      query = query.eq('client_id', client_id);
     }
 
     const { data, count, error } = await query
@@ -51,16 +53,29 @@ export class ProjectRepository extends BaseRepository<Project> {
     if (error) throw error;
 
     return {
-      projects: (data ?? []) as Project[],
+      data: (data ?? []) as Project[],
       total: count ?? 0,
       page,
       pageSize,
     };
   }
 
+  /**
+   * Bulk insert multiple projects in a single database call.
+   */
+  async createMany(records: Partial<Project>[]): Promise<number> {
+    const { data, error } = await this.dbClient
+      .from(TableNames.PROJECT)
+      .insert(records as never[])
+      .select('id');
+
+    if (error) throw error;
+    return data?.length ?? 0;
+  }
+
   async findByIdWithClient(id: string): Promise<(Project & { client_name: string }) | null> {
-    const { data: project, error } = await this.client
-      .from('projects')
+    const { data: project, error } = await this.dbClient
+      .from(TableNames.PROJECT)
       .select('*')
       .eq('id', id)
       .is('deleted_at', null)
@@ -68,8 +83,8 @@ export class ProjectRepository extends BaseRepository<Project> {
 
     if (error || !project) return null;
 
-    const { data: clientData } = await this.client
-      .from('clients')
+    const { data: clientData } = await this.dbClient
+      .from(TableNames.CLIENT)
       .select('name')
       .eq('id', (project as Project).client_id)
       .single();

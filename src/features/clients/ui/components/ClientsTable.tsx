@@ -10,9 +10,12 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import type { Client } from '@/shared/types/database.types';
-import { useClients, useDeleteClient } from '../hooks/useClients';
+import type { Client } from '@/shared/base-feature/domain/database.types';
+import { CsvImportDialog } from '@/shared/csv-import';
+import { useClients, useDeleteClient, useImportClients } from '../hooks/useClients';
 import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
+import { clientCsvImportConfig } from '../csv-import-config';
+import type { ClientApiData } from '../../domain/schemas';
 
 import { ClientsToolbar } from './ClientsToolbar';
 import { ClientsDataTable } from './ClientsDataTable';
@@ -26,13 +29,14 @@ interface ClientsTableProps {
 
 export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
   const router = useRouter();
-  
+
   // State
   const [search, setSearch] = useState(initialSearch);
   const [page, setPage] = useState(1);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editClient, setEditClient] = useState<Client | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Data fetching
   const { data, isLoading, error } = useClients({
@@ -44,6 +48,7 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
   });
 
   const deleteMutation = useDeleteClient();
+  const importMutation = useImportClients();
 
   // Handlers
   const handleSearchChange = (value: string) => {
@@ -67,6 +72,16 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
     }
   };
 
+  const handleImport = async (rows: ClientApiData[]) => {
+    try {
+      const result = await importMutation.mutateAsync(rows);
+      toast.success(`Successfully imported ${result.imported} client${result.imported !== 1 ? 's' : ''}`);
+      setImportDialogOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to import clients');
+    }
+  };
+
   // Error state
   if (error) {
     return (
@@ -77,8 +92,8 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
   }
 
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
-  const emptyMessage = search 
-    ? 'No clients found matching your search' 
+  const emptyMessage = search
+    ? 'No clients found matching your search'
     : 'No clients yet. Add your first client!';
 
   return (
@@ -88,6 +103,7 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
         search={search}
         onSearchChange={handleSearchChange}
         onAddClick={() => setCreateDialogOpen(true)}
+        onImportClick={() => setImportDialogOpen(true)}
       />
 
       {/* Data Table */}
@@ -128,6 +144,14 @@ export function ClientsTable({ initialSearch = '' }: ClientsTableProps) {
         open={!!editClient}
         onOpenChange={(open) => !open && setEditClient(null)}
         client={editClient}
+      />
+
+      <CsvImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        config={clientCsvImportConfig}
+        onImport={handleImport}
+        isImporting={importMutation.isPending}
       />
     </div>
   );

@@ -4,7 +4,7 @@
  * Type definitions for client operations.
  */
 
-import type { Client } from '@/shared/types/database.types';
+import type { Client } from '@/shared/base-feature/domain/database.types';
 
 // =============================================================================
 // CLIENT DTOS

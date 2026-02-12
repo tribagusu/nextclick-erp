@@ -7,8 +7,9 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Client } from '@/shared/types/database.types';
+import type { Client } from '@/shared/base-feature/domain/database.types';
 import type { ClientListParams, ClientListResponse, ClientCreateInput, ClientUpdateInput } from '../../domain/types';
+import type { ClientApiData } from '../../domain/schemas';
 
 // Query keys
 export const clientKeys = {
@@ -79,6 +80,20 @@ async function deleteClient(id: string): Promise<void> {
   }
 }
 
+async function importClients(rows: ClientApiData[]): Promise<{ imported: number }> {
+  const response = await fetch('/api/clients/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rows }),
+  });
+  if (!response.ok) {
+    const json = await response.json();
+    throw new Error(json.error?.message || 'Failed to import clients');
+  }
+  const json = await response.json();
+  return json.data;
+}
+
 // =============================================================================
 // HOOKS
 // =============================================================================
@@ -141,6 +156,20 @@ export function useDeleteClient() {
 
   return useMutation({
     mutationFn: deleteClient,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: clientKeys.lists() });
+    },
+  });
+}
+
+/**
+ * Hook for bulk importing clients from CSV
+ */
+export function useImportClients() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: importClients,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: clientKeys.lists() });
     },

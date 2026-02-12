@@ -10,15 +10,17 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import type { Project, ProjectStatus } from '@/shared/types/database.types';
-import { useProjects, useDeleteProject } from '../hooks/useProjects';
+import type { Project, ProjectStatus } from '@/shared/base-feature/domain/database.types';
+import { CsvImportDialog } from '@/shared/csv-import';
+import { useProjects, useDeleteProject, useImportProjects } from '../hooks/useProjects';
 import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
+import type { ProjectCsvData } from '../../domain/schemas';
+import { projectCsvImportConfig } from '../csv-import-config';
 
 import { ProjectsToolbar } from './ProjectsToolbar';
 import { ProjectsDataTable } from './ProjectsDataTable';
 import { ProjectsPagination } from './ProjectsPagination';
 import { ProjectFormDialog } from './ProjectFormDialog';
-import { ProjectEditDialog } from './ProjectEditDialog';
 
 export function ProjectsTable() {
   const router = useRouter();
@@ -30,6 +32,7 @@ export function ProjectsTable() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editProject, setEditProject] = useState<Project | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Data fetching
   const { data, isLoading, error } = useProjects({
@@ -42,6 +45,7 @@ export function ProjectsTable() {
   });
 
   const deleteMutation = useDeleteProject();
+  const importMutation = useImportProjects();
 
   // Handlers
   const handleSearchChange = (value: string) => {
@@ -56,6 +60,16 @@ export function ProjectsTable() {
 
   const handleRowClick = (projectId: string) => {
     router.push(`/projects/${projectId}`);
+  };
+
+  const handleImport = async (rows: ProjectCsvData[]) => {
+    try {
+      const result = await importMutation.mutateAsync(rows);
+      toast.success(`Successfully imported ${result.imported} project${result.imported !== 1 ? 's' : ''}`);
+      setImportDialogOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to import projects');
+    }
   };
 
   const handleDelete = async () => {
@@ -93,11 +107,12 @@ export function ProjectsTable() {
         status={status}
         onStatusChange={handleStatusChange}
         onAddClick={() => setCreateDialogOpen(true)}
+        onImportClick={() => setImportDialogOpen(true)}
       />
 
       {/* Data Table */}
       <ProjectsDataTable
-        projects={data?.projects ?? []}
+        projects={data?.data ?? []}
         isLoading={isLoading}
         emptyMessage={emptyMessage}
         onRowClick={handleRowClick}
@@ -124,15 +139,26 @@ export function ProjectsTable() {
         isLoading={deleteMutation.isPending}
       />
 
+      {/* Create dialog (no project = create mode) */}
       <ProjectFormDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
 
-      <ProjectEditDialog
+      {/* Edit dialog (with project = edit mode) */}
+      <ProjectFormDialog
         open={!!editProject}
         onOpenChange={(open) => !open && setEditProject(null)}
         project={editProject}
+      />
+
+      {/* CSV Import dialog */}
+      <CsvImportDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        config={projectCsvImportConfig}
+        onImport={handleImport}
+        isImporting={importMutation.isPending}
       />
     </div>
   );

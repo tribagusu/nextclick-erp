@@ -6,22 +6,23 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { Alert, AlertDescription } from '@/shared/components/ui/alert';
 import { Button } from '@/shared/components/ui/button';
+import { FormDialog } from '@/shared/components/ui/form-dialog';
 import { Input } from '@/shared/components/ui/input';
 import { Label } from '@/shared/components/ui/label';
 import { Textarea } from '@/shared/components/ui/textarea';
-import { Alert, AlertDescription } from '@/shared/components/ui/alert';
-import { FormDialog } from '@/shared/components/ui/form-dialog';
 
-import { clientSchema, type ClientFormData, transformClientInput } from '../../domain/schemas';
+import type { Client } from '@/shared/base-feature/domain/database.types';
+import { sanitizeFormData } from '@/shared/utils/sanitize';
+import { clientSchema, transformClientInput, type ClientFormData } from '../../domain/schemas';
 import { useUpdateClient } from '../hooks/useClients';
-import type { Client } from '@/shared/types/database.types';
 
 interface ClientEditDialogProps {
   open: boolean;
@@ -70,7 +71,8 @@ export function ClientEditDialog({ open, onOpenChange, client, onSuccess }: Clie
     
     setError(null);
     try {
-      const transformed = transformClientInput(data);
+      const sanitized = sanitizeFormData(data);
+      const transformed = transformClientInput(sanitized);
       await updateMutation.mutateAsync({ id: client.id, ...transformed });
       toast.success('Client updated successfully');
       onOpenChange(false);
@@ -118,7 +120,7 @@ export function ClientEditDialog({ open, onOpenChange, client, onSuccess }: Clie
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-email">Email</Label>
+            <Label htmlFor="edit-email">Email *</Label>
             <Input
               id="edit-email"
               type="email"
@@ -133,31 +135,40 @@ export function ClientEditDialog({ open, onOpenChange, client, onSuccess }: Clie
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="edit-phone">Phone</Label>
+            <Label htmlFor="edit-phone">Phone *</Label>
             <Input
               id="edit-phone"
               placeholder="+1 (555) 000-0000"
               {...register('phone')}
             />
+            {errors.phone && (
+              <p className="text-sm text-destructive">{errors.phone.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-company">Company Name</Label>
+            <Label htmlFor="edit-company">Company Name *</Label>
             <Input
               id="edit-company"
               placeholder="Company name"
               {...register('company_name')}
             />
+            {errors.company_name && (
+              <p className="text-sm text-destructive">{errors.company_name.message}</p>
+            )}
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="edit-address">Address</Label>
+          <Label htmlFor="edit-address">Address *</Label>
           <Input
             id="edit-address"
             placeholder="Street address"
             {...register('address')}
           />
+          {errors.address && (
+            <p className="text-sm text-destructive">{errors.address.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">

@@ -2,10 +2,10 @@
  * Settings API Handlers
  */
 
+import { Employee } from '@/shared/base-feature/domain/database.types';
 import { NextResponse } from 'next/server';
 import { createClient } from '../../../../supabase/server';
-import { profileUpdateSchema, passwordChangeSchema } from '../domain/schemas';
-import type { Employee } from '@/shared/types/database.types';
+import { passwordChangeSchema, profileUpdateSchema } from '../domain/schemas';
 
 // =============================================================================
 // PROFILE HANDLERS
@@ -18,7 +18,7 @@ import type { Employee } from '@/shared/types/database.types';
 export async function handleGetProfile() {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -48,7 +48,7 @@ export async function handleGetProfile() {
 export async function handleUpdateProfile(request: Request) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -56,7 +56,7 @@ export async function handleUpdateProfile(request: Request) {
   // Parse and validate input
   const body = await request.json();
   const result = profileUpdateSchema.safeParse(body);
-  
+
   if (!result.success) {
     return NextResponse.json(
       { error: { message: result.error.issues[0].message } },
@@ -111,7 +111,7 @@ export async function handleUpdateProfile(request: Request) {
 export async function handleChangePassword(request: Request) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -119,7 +119,7 @@ export async function handleChangePassword(request: Request) {
   // Parse and validate input
   const body = await request.json();
   const result = passwordChangeSchema.safeParse(body);
-  
+
   if (!result.success) {
     return NextResponse.json(
       { error: { message: result.error.issues[0].message } },

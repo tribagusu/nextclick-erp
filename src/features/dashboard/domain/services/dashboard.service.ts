@@ -6,7 +6,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Project, Client, ProjectMilestone, CommunicationLog } from '@/shared/types/database.types';
+import type { Database, Project, Client, ProjectMilestone, CommunicationLog } from '@/shared/base-feature/domain/database.types';
 import type { DashboardMetrics, ProjectSummary, ClientStats, DashboardData, RecentActivity } from '../types';
 
 // Helper type for Supabase client

@@ -5,13 +5,13 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Employee, EmployeeStatus } from '@/shared/types/database.types';
-import { BaseRepository } from '@/shared/lib/api/base-repository';
-import type { EmployeeListParams, EmployeeListResponse } from '../types';
+import type { Database, Employee, EmployeeStatus } from '@/shared/base-feature/domain/database.types';
+import { BaseRepository } from '@/shared/base-feature/domain/base.repository';
+import type { EmployeeCreateInput, EmployeeListParams, EmployeeListResponse, EmployeeUpdateInput } from '../types';
 
-export class EmployeeRepository extends BaseRepository<Employee> {
-  constructor(client: SupabaseClient<Database>) {
-    super(client, 'employees');
+export class EmployeeRepository extends BaseRepository<Employee, EmployeeCreateInput, EmployeeUpdateInput> {
+  constructor(dbClient: SupabaseClient<Database>) {
+    super(dbClient, 'employees');
   }
 
   /**
@@ -31,7 +31,7 @@ export class EmployeeRepository extends BaseRepository<Employee> {
     const offset = (page - 1) * pageSize;
 
     // Build query
-    let query = this.client
+    let query = this.dbClient
       .from('employees')
       .select('*', { count: 'exact' })
       .is('deleted_at', null);
@@ -70,7 +70,7 @@ export class EmployeeRepository extends BaseRepository<Employee> {
    * Get unique departments for filtering
    */
   async getDepartments(): Promise<string[]> {
-    const { data, error } = await this.client
+    const { data, error } = await this.dbClient
       .from('employees')
       .select('department')
       .is('deleted_at', null)
@@ -91,7 +91,7 @@ export class EmployeeRepository extends BaseRepository<Employee> {
    * Get employees by status
    */
   async findByStatus(status: EmployeeStatus): Promise<Employee[]> {
-    const { data, error } = await this.client
+    const { data, error } = await this.dbClient
       .from('employees')
       .select('*')
       .eq('status', status)
@@ -106,7 +106,7 @@ export class EmployeeRepository extends BaseRepository<Employee> {
    * Get employee with project count
    */
   async findByIdWithStats(id: string): Promise<Employee & { projectCount: number } | null> {
-    const { data: employee, error } = await this.client
+    const { data: employee, error } = await this.dbClient
       .from('employees')
       .select('*')
       .eq('id', id)
@@ -116,7 +116,7 @@ export class EmployeeRepository extends BaseRepository<Employee> {
     if (error || !employee) return null;
 
     // Get project count
-    const { count } = await this.client
+    const { count } = await this.dbClient
       .from('project_employees')
       .select('*', { count: 'exact', head: true })
       .eq('employee_id', id);

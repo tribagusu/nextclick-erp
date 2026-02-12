@@ -4,9 +4,11 @@
 
 'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Project } from '@/shared/types/database.types';
-import type { ProjectListParams, ProjectListResponse, ProjectCreateInput, ProjectUpdateInput } from '../../domain/types';
+import { PaginatedResponse } from '@/shared/base-feature/domain/base.types';
+import type { Project } from '@/shared/base-feature/domain/database.types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ProjectCreateInput, ProjectListParams, ProjectUpdateInput } from '../../domain/types';
+import type { ProjectCsvData } from '../../domain/schemas';
 
 export const projectKeys = {
   all: ['projects'] as const,
@@ -16,14 +18,14 @@ export const projectKeys = {
   detail: (id: string) => [...projectKeys.details(), id] as const,
 };
 
-async function fetchProjects(params: ProjectListParams): Promise<ProjectListResponse> {
+async function fetchProjects(params: ProjectListParams): Promise<PaginatedResponse<Project>> {
   const searchParams = new URLSearchParams();
   if (params.page) searchParams.set('page', String(params.page));
   if (params.pageSize) searchParams.set('pageSize', String(params.pageSize));
   if (params.search) searchParams.set('search', params.search);
   if (params.status) searchParams.set('status', params.status);
   if (params.priority) searchParams.set('priority', params.priority);
-  if (params.clientId) searchParams.set('clientId', params.clientId);
+  if (params.client_id) searchParams.set('clientId', params.client_id);
   if (params.sortBy) searchParams.set('sortBy', params.sortBy);
   if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
@@ -116,6 +118,30 @@ export function useDeleteProject() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    },
+  });
+}
+
+async function importProjects(rows: ProjectCsvData[]): Promise<{ imported: number }> {
+  const response = await fetch('/api/projects/import', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rows }),
+  });
+  if (!response.ok) {
+    const json = await response.json();
+    throw new Error(json.error?.message || 'Failed to import projects');
+  }
+  const json = await response.json();
+  return json.data;
+}
+
+export function useImportProjects() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: importProjects,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
     },

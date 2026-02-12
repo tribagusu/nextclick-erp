@@ -5,10 +5,10 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Client } from '@/shared/types/database.types';
+import type { Database, Client } from '@/shared/base-feature/domain/database.types';
 import { ClientRepository } from './client.repository';
 import type { ClientListParams, ClientListResponse, ClientCreateInput, ClientUpdateInput } from '../types';
-import { clientApiSchema } from '../schemas';
+import { clientApiSchema, clientUpdateSchema } from '../schemas';
 
 export class ClientService {
   private repository: ClientRepository;
@@ -67,9 +67,10 @@ export class ClientService {
    * Update an existing client
    */
   async updateClient(id: string, input: ClientUpdateInput): Promise<{ success: boolean; client?: Client; error?: string }> {
-    // Validate input (API schema accepts null values)
-    const result = clientApiSchema.partial().safeParse(input);
+    // Validate input using update schema (without email/phone requirement)
+    const result = clientUpdateSchema.safeParse(input);
     if (!result.success) {
+      console.error('Client validation failed:', result.error.issues);
       return { success: false, error: result.error.issues[0].message };
     }
 
@@ -109,5 +110,38 @@ export class ClientService {
    */
   async searchClients(query: string, limit = 10): Promise<Client[]> {
     return this.repository.search(query, limit);
+  }
+
+  /**
+   * Bulk import clients from CSV data.
+   * Re-validates each row server-side, then batch-inserts.
+   */
+  async importClients(
+    rows: ClientCreateInput[]
+  ): Promise<{ success: boolean; imported?: number; error?: string }> {
+    // Re-validate every row server-side (defense in depth)
+    const validatedRows: Partial<Client>[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const result = clientApiSchema.safeParse(rows[i]);
+      if (!result.success) {
+        return {
+          success: false,
+          error: `Row ${i + 1}: ${result.error.issues[0].message}`,
+        };
+      }
+      validatedRows.push(result.data as Partial<Client>);
+    }
+
+    try {
+      const count = await this.repository.createMany(validatedRows);
+      return { success: true, imported: count };
+    } catch (error) {
+      console.error('Import clients error:', error);
+      const err = error as { message?: string; code?: string };
+      if (err.code === '42501') {
+        return { success: false, error: 'Permission denied. You do not have access to import clients.' };
+      }
+      return { success: false, error: err.message || 'Failed to import clients' };
+    }
   }
 }

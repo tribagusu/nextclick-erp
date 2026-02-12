@@ -11,6 +11,7 @@ import Link from 'next/link';
 
 import { Button } from '@/shared/components/ui/button';
 import { Skeleton } from '@/shared/components/ui/skeleton';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 import { MilestoneForm } from '@/features/milestones/ui/components/MilestoneForm';
 import { useCreateMilestone } from '@/features/milestones/ui/hooks/useMilestones';
 
@@ -72,9 +73,11 @@ export default function NewMilestonePage() {
           <p className="text-muted-foreground">Create a new milestone</p>
         </div>
       </div>
-      <div className="max-w-3xl">
-        <MilestoneForm projects={projects} onSubmit={handleSubmit} isLoading={createMutation.isPending} error={error} mode="create" />
-      </div>
+      <FeatureErrorBoundary featureName="New Milestone">
+        <div className="max-w-3xl">
+          <MilestoneForm projects={projects} onSubmit={handleSubmit} isLoading={createMutation.isPending} error={error} mode="create" />
+        </div>
+      </FeatureErrorBoundary>
     </div>
   );
 }

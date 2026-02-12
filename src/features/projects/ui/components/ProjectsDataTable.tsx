@@ -26,7 +26,7 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 
-import type { Project, ProjectStatus } from '@/shared/types/database.types';
+import type { Project, ProjectStatus } from '@/shared/base-feature/domain/database.types';
 
 const statusColors: Record<ProjectStatus, string> = {
   draft: 'bg-blue-500',

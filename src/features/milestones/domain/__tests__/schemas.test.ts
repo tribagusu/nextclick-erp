@@ -47,6 +47,8 @@ describe('Milestone Schemas', () => {
         const result = milestoneFormSchema.safeParse({
           project_id: 'project-uuid',
           milestone: 'Test Milestone',
+          description: 'Test description',
+          due_date: '2024-03-15',
           status,
         });
         expect(result.success).toBe(true);
@@ -68,13 +70,13 @@ describe('Milestone Schemas', () => {
       const result = transformMilestoneInput({
         project_id: 'project-uuid',
         milestone: 'Test Milestone',
-        description: '',
-        due_date: '',
+        description: 'Required description',
+        due_date: '2024-03-15',
         completion_date: '',
         remarks: '',
       });
-      expect(result.description).toBeNull();
-      expect(result.due_date).toBeNull();
+      expect(result.description).toBe('Required description');
+      expect(result.due_date).toBe('2024-03-15');
       expect(result.completion_date).toBeNull();
       expect(result.remarks).toBeNull();
     });

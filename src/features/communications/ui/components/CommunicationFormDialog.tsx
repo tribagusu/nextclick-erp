@@ -31,6 +31,7 @@ import {
   type CommunicationFormData 
 } from '../../domain/schemas';
 import { useCreateCommunication } from '../hooks/useCommunications';
+import { sanitizeString } from '@/shared/utils/sanitize';
 import { useClients } from '@/features/clients/ui/hooks/useClients';
 import { useProjects } from '@/features/projects/ui/hooks/useProjects';
 
@@ -72,7 +73,7 @@ export function CommunicationFormDialog({ open, onOpenChange, onSuccess }: Commu
   const followUpRequired = watch('follow_up_required');
 
   // Filter projects by selected client
-  const filteredProjects = projectsData?.projects.filter(
+  const filteredProjects = projectsData?.data.filter(
     (p) => p.client_id === currentClientId
   ) ?? [];
 
@@ -81,12 +82,12 @@ export function CommunicationFormDialog({ open, onOpenChange, onSuccess }: Commu
     try {
       await createMutation.mutateAsync({
         client_id: data.client_id,
-        project_id: data.project_id || undefined,
+        project_id: data.project_id || null,
         date: data.date,
         mode: data.mode,
-        summary: data.summary,
+        summary: sanitizeString(data.summary),
         follow_up_required: data.follow_up_required ?? false,
-        follow_up_date: data.follow_up_date || undefined,
+        follow_up_date: data.follow_up_date || null,
       });
       toast.success('Communication log created successfully');
       reset();

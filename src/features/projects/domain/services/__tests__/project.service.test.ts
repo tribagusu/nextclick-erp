@@ -2,86 +2,95 @@
  * Project Service Tests
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { getInputProjectMock, getValidProjectMock } from '@/features/projects/domain/__tests__/mock.utils';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProjectService } from '../project.service';
 
-// Mock the Supabase client
-const mockSupabase = {
-  from: vi.fn(),
-  auth: {
-    getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'test-user' } }, error: null }),
-  },
-};
-
 describe('ProjectService', () => {
+  const projectMock = getValidProjectMock();
   let service: ProjectService;
+  let repositoryMock: { create: ReturnType<typeof vi.fn>; createMany: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    service = new ProjectService(mockSupabase as never);
+    repositoryMock = {
+      create: vi.fn().mockResolvedValue(projectMock),
+      createMany: vi.fn().mockResolvedValue(2),
+    };
+    service = new ProjectService(repositoryMock as never);
   });
 
   describe('createProject', () => {
     it('should create a project with valid data', async () => {
-      const mockProject = {
-        id: 'proj-1',
-        project_name: 'Website Redesign',
-        client_id: 'client-1',
-        description: 'Complete website overhaul',
-        status: 'draft',
-        priority: 'high',
-        total_budget: 50000,
-        amount_paid: 0,
-        start_date: '2024-01-01',
-        end_date: '2024-06-01',
-        payment_terms: 'Net 30',
-        created_at: '2024-01-01',
-        updated_at: '2024-01-01',
-        deleted_at: null,
-      };
+      const project = await service.create(getInputProjectMock());
+      expect(project).toBeDefined();
+      expect(project).toEqual(projectMock);
+    });
+  });
 
-      const mockInsert = vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          single: vi.fn().mockResolvedValue({ data: mockProject, error: null }),
-        }),
-      });
+  describe('importProjects', () => {
+    const validRows = [
+      { project_name: 'Project A', client_id: 'client-1', status: 'draft' as const, priority: 'medium' as const },
+      { project_name: 'Project B', client_id: 'client-2', status: 'active' as const, priority: 'high' as const, description: 'A description' },
+    ];
 
-      mockSupabase.from.mockReturnValue({
-        insert: mockInsert,
-      });
-
-      const result = await service.createProject({
-        project_name: 'Website Redesign',
-        client_id: 'client-1',
-        description: 'Complete website overhaul',
-        status: 'draft',
-        priority: 'high',
-        total_budget: 50000,
-      });
+    it('should import valid rows successfully', async () => {
+      const result = await service.importProjects(validRows);
 
       expect(result.success).toBe(true);
-      expect(result.project).toBeDefined();
-      expect(result.project?.project_name).toBe('Website Redesign');
+      expect(result.imported).toBe(2);
     });
 
-    it('should return error for missing project name', async () => {
-      const result = await service.createProject({
-        project_name: '', // Invalid - empty name
-        client_id: 'client-1',
-      });
+    it('should return error when a row fails Zod validation', async () => {
+      const invalidRows = [
+        { project_name: '', client_id: 'client-1', status: 'draft' as const, priority: 'medium' as const },
+      ];
+
+      const result = await service.importProjects(invalidRows);
 
       expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      expect(result.error).toContain('Row 1');
     });
 
-    it('should return error for missing client_id', async () => {
-      const result = await service.createProject({
-        project_name: 'Test Project',
-        client_id: '', // Invalid - empty client_id
-      });
+    it('should include row number in validation error message', async () => {
+      const rows = [
+        { project_name: 'Valid', client_id: 'client-1', status: 'draft' as const, priority: 'medium' as const },
+        { project_name: '', client_id: 'client-2', status: 'active' as const, priority: 'high' as const },
+      ];
+
+      const result = await service.importProjects(rows);
 
       expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      expect(result.error).toContain('Row 2');
+    });
+
+    it('should return error when database insert fails', async () => {
+      repositoryMock.createMany.mockRejectedValueOnce({ message: 'Insert failed', code: 'ERROR' });
+
+      const result = await service.importProjects(validRows);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Insert failed');
+    });
+
+    it('should return permission denied for error code 42501', async () => {
+      repositoryMock.createMany.mockRejectedValueOnce({ message: 'permission denied', code: '42501' });
+
+      const result = await service.importProjects(validRows);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Permission denied');
+    });
+
+    it('should return error when client_id is missing', async () => {
+      const rows = [
+        { project_name: 'Project X', client_id: '', status: 'draft' as const, priority: 'medium' as const },
+      ];
+
+      const result = await service.importProjects(rows);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Row 1');
     });
   });
 

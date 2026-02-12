@@ -2,65 +2,58 @@
  * Project Service
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database, Project } from '@/shared/types/database.types';
-import { ProjectRepository } from './project.repository';
-import type { ProjectListParams, ProjectListResponse, ProjectCreateInput, ProjectUpdateInput } from '../types';
+import { BaseService } from '@/shared/base-feature/domain/base.service';
+import { PaginatedResponse } from '@/shared/base-feature/domain/base.types';
+import type { Project } from '@/shared/base-feature/domain/database.types';
+import type { ProjectCreateInput, ProjectListParams, ProjectUpdateInput } from '../types';
 import { projectApiSchema } from '../schemas';
+import { ProjectRepository } from './project.repository';
 
-export class ProjectService {
-  private repository: ProjectRepository;
+export class ProjectService extends BaseService<Project, ProjectCreateInput, ProjectUpdateInput> {
 
-  constructor(client: SupabaseClient<Database>) {
-    this.repository = new ProjectRepository(client);
+  constructor(private projectRepo: ProjectRepository) {
+    super(projectRepo)
   }
 
-  async getProjects(params: ProjectListParams): Promise<ProjectListResponse> {
-    return this.repository.findAllPaginated(params);
+  async getProjects(params: ProjectListParams): Promise<PaginatedResponse<Project>> {
+    return this.projectRepo.findAllPaginated(params);
   }
 
   async getProject(id: string) {
-    return this.repository.findByIdWithClient(id);
+    return this.projectRepo.findByIdWithClient(id);
   }
 
-  async createProject(input: ProjectCreateInput): Promise<{ success: boolean; project?: Project; error?: string }> {
-    const result = projectApiSchema.safeParse(input);
-    if (!result.success) {
-      return { success: false, error: result.error.issues[0].message };
+  /**
+   * Bulk import projects from CSV data.
+   * Rows must already have client_id resolved (handler resolves client_name → client_id).
+   * Re-validates each row server-side, then batch-inserts.
+   */
+  async importProjects(
+    rows: ProjectCreateInput[]
+  ): Promise<{ success: boolean; imported?: number; error?: string }> {
+    // Re-validate every row server-side (defense in depth)
+    const validatedRows: Partial<Project>[] = [];
+    for (let i = 0; i < rows.length; i++) {
+      const result = projectApiSchema.safeParse(rows[i]);
+      if (!result.success) {
+        return {
+          success: false,
+          error: `Row ${i + 1}: ${result.error.issues[0].message}`,
+        };
+      }
+      validatedRows.push(result.data as Partial<Project>);
     }
 
     try {
-      // result.data is already validated, pass directly to repository
-      const project = await this.repository.create(result.data as Partial<Project>);
-      return { success: true, project };
+      const count = await this.projectRepo.createMany(validatedRows);
+      return { success: true, imported: count };
     } catch (error) {
-      console.error('Create project error:', error);
-      return { success: false, error: 'Failed to create project' };
-    }
-  }
-
-  async updateProject(id: string, input: ProjectUpdateInput): Promise<{ success: boolean; project?: Project; error?: string }> {
-    const result = projectApiSchema.partial().safeParse(input);
-    if (!result.success) {
-      return { success: false, error: result.error.issues[0].message };
-    }
-
-    try {
-      const project = await this.repository.update(id, result.data as Partial<Project>);
-      return { success: true, project };
-    } catch (error) {
-      console.error('Update project error:', error);
-      return { success: false, error: 'Failed to update project' };
-    }
-  }
-
-  async deleteProject(id: string): Promise<{ success: boolean; error?: string }> {
-    try {
-      await this.repository.softDelete(id);
-      return { success: true };
-    } catch (error) {
-      console.error('Delete project error:', error);
-      return { success: false, error: 'Failed to delete project' };
+      console.error('Import projects error:', error);
+      const err = error as { message?: string; code?: string };
+      if (err.code === '42501') {
+        return { success: false, error: 'Permission denied. You do not have access to import projects.' };
+      }
+      return { success: false, error: err.message || 'Failed to import projects' };
     }
   }
 }

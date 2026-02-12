@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import type { CommunicationLog, CommunicationMode } from '@/shared/types/database.types';
+import type { CommunicationLog, CommunicationMode } from '@/shared/base-feature/domain/database.types';
 import { useCommunications, useDeleteCommunication } from '../hooks/useCommunications';
 import { DeleteConfirmDialog } from '@/shared/components/DeleteConfirmDialog';
 
@@ -32,7 +32,7 @@ export function CommunicationsTable() {
   const [editCommunication, setEditCommunication] = useState<CommunicationLog | null>(null);
 
   // Data fetching
-  const { data, isLoading, error } = useCommunications({
+  const { data: response, isLoading, error } = useCommunications({
     page,
     pageSize: 10,
     search: search || undefined,
@@ -79,7 +79,7 @@ export function CommunicationsTable() {
     );
   }
 
-  const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
+  const totalPages = response ? Math.ceil(response.total / response.pageSize) : 0;
   const emptyMessage = search || mode !== 'all' 
     ? 'No communications found' 
     : 'No communication logs yet. Add your first log!';
@@ -97,7 +97,7 @@ export function CommunicationsTable() {
 
       {/* Data Table */}
       <CommunicationsDataTable
-        communications={data?.communications ?? []}
+        communications={response?.data ?? []}
         isLoading={isLoading}
         emptyMessage={emptyMessage}
         onRowClick={handleRowClick}
@@ -109,8 +109,8 @@ export function CommunicationsTable() {
       <CommunicationsPagination
         page={page}
         totalPages={totalPages}
-        total={data?.total ?? 0}
-        pageSize={data?.pageSize ?? 10}
+        total={response?.total ?? 0}
+        pageSize={response?.pageSize ?? 10}
         onPageChange={setPage}
       />
 

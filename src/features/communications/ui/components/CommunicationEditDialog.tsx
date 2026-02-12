@@ -31,9 +31,10 @@ import {
   type CommunicationFormData 
 } from '../../domain/schemas';
 import { useUpdateCommunication } from '../hooks/useCommunications';
+import { sanitizeString } from '@/shared/utils/sanitize';
 import { useClients } from '@/features/clients/ui/hooks/useClients';
 import { useProjects } from '@/features/projects/ui/hooks/useProjects';
-import type { CommunicationLog } from '@/shared/types/database.types';
+import type { CommunicationLog } from '@/shared/base-feature/domain/database.types';
 
 interface CommunicationEditDialogProps {
   open: boolean;
@@ -74,7 +75,7 @@ export function CommunicationEditDialog({ open, onOpenChange, communication, onS
   const followUpRequired = watch('follow_up_required');
 
   // Filter projects by selected client
-  const filteredProjects = projectsData?.projects.filter(
+  const filteredProjects = projectsData?.data.filter(
     (p) => p.client_id === currentClientId
   ) ?? [];
 
@@ -104,7 +105,7 @@ export function CommunicationEditDialog({ open, onOpenChange, communication, onS
         project_id: data.project_id || undefined,
         date: data.date,
         mode: data.mode,
-        summary: data.summary,
+        summary: sanitizeString(data.summary),
         follow_up_required: data.follow_up_required ?? false,
         follow_up_date: data.follow_up_date || undefined,
       });

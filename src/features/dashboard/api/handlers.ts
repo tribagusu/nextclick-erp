@@ -6,7 +6,7 @@
 
 import { createClient } from '../../../../supabase/server';
 import { DashboardService } from '../domain/services/dashboard.service';
-import { successResponse, internalErrorResponse, unauthorizedResponse } from '@/shared/lib/api/api-utils';
+import { successResponse, internalErrorResponse, unauthorizedResponse } from '@/shared/base-feature/api/api-utils';
 
 /**
  * Handle get dashboard data request

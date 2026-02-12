@@ -12,6 +12,7 @@ describe('Client Schema', () => {
         name: 'Acme Corporation',
         email: 'contact@acme.com',
         phone: '+1234567890',
+        company_name: 'Acme Inc',
         address: '123 Main Street',
         notes: 'Important client',
       });
@@ -34,39 +35,45 @@ describe('Client Schema', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should accept empty email', () => {
+    it('should accept empty email when phone is provided', () => {
       const result = clientSchema.safeParse({
         name: 'Acme Corporation',
         email: '',
+        phone: '+1234567890',
+        company_name: 'Acme Inc',
+        address: '123 Main St',
       });
       expect(result.success).toBe(true);
     });
 
-    it('should allow optional fields to be empty', () => {
+    it('should require either email or phone', () => {
       const result = clientSchema.safeParse({
         name: 'Acme Corporation',
         email: '',
         phone: '',
-        address: '',
+        company_name: 'Acme Inc',
+        address: '123 Main St',
         notes: '',
       });
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
     });
   });
 
   describe('transformClientInput', () => {
-    it('should transform empty strings to null', () => {
+    it('should transform empty optional strings to null', () => {
       const result = transformClientInput({
         name: 'Acme Corporation',
         email: '',
         phone: '',
-        address: '',
+        company_name: 'Acme Inc',
+        address: '123 Main St',
         notes: '',
       });
       expect(result.name).toBe('Acme Corporation');
       expect(result.email).toBeNull();
       expect(result.phone).toBeNull();
-      expect(result.address).toBeNull();
+      expect(result.company_name).toBe('Acme Inc');
+      expect(result.address).toBe('123 Main St');
       expect(result.notes).toBeNull();
     });
 
@@ -75,6 +82,7 @@ describe('Client Schema', () => {
         name: 'Acme Corporation',
         email: 'test@acme.com',
         phone: '+1234567890',
+        company_name: 'Acme Inc',
         address: '123 Main St',
         notes: 'VIP client',
       });
