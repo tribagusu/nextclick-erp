@@ -6,7 +6,7 @@
 
 'use client';
 
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Upload } from 'lucide-react';
 
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -15,9 +15,10 @@ interface ClientsToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
   onAddClick: () => void;
+  onImportClick: () => void;
 }
 
-export function ClientsToolbar({ search, onSearchChange, onAddClick }: ClientsToolbarProps) {
+export function ClientsToolbar({ search, onSearchChange, onAddClick, onImportClick }: ClientsToolbarProps) {
   return (
     <div className="flex items-center gap-2">
       <div className="relative flex-1 max-w-sm">
@@ -29,6 +30,10 @@ export function ClientsToolbar({ search, onSearchChange, onAddClick }: ClientsTo
           className="pl-9"
         />
       </div>
+      <Button variant="outline" onClick={onImportClick}>
+        <Upload className="mr-2 h-4 w-4" />
+        Import CSV
+      </Button>
       <Button onClick={onAddClick}>
         <Plus className="mr-2 h-4 w-4" />
         Add Client

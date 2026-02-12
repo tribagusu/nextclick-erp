@@ -154,3 +154,40 @@ export async function handleDeleteClient(request: Request, { params }: { params:
     return internalErrorResponse();
   }
 }
+
+/**
+ * Bulk import clients from CSV data
+ */
+export async function handleImportClients(request: Request) {
+  try {
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return unauthorizedResponse();
+    }
+
+    const body = await request.json();
+    const rows = body.rows;
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return validationErrorResponse('No rows provided for import');
+    }
+
+    if (rows.length > 500) {
+      return validationErrorResponse('Maximum 500 rows per import');
+    }
+
+    const clientService = new ClientService(supabase);
+    const result = await clientService.importClients(rows);
+
+    if (!result.success) {
+      return validationErrorResponse(result.error || 'Failed to import clients');
+    }
+
+    return successResponse({ imported: result.imported }, undefined, 201);
+  } catch (error) {
+    console.error('Import clients error:', error);
+    return internalErrorResponse();
+  }
+}
