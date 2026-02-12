@@ -1,9 +1,7 @@
-import { MilestonesTable } from '@/features/milestones/ui/components/MilestonesTable';
+'use client';
 
-export const metadata = {
-  title: 'Milestones | Next Click ERP',
-  description: 'Manage project milestones',
-};
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
+import { MilestonesTable } from '@/features/milestones/ui/components/MilestonesTable';
 
 export default function MilestonesPage() {
   return (
@@ -12,7 +10,9 @@ export default function MilestonesPage() {
         <h1 className="text-3xl font-bold">Milestones</h1>
         <p className="text-muted-foreground">Track project milestones</p>
       </div>
-      <MilestonesTable />
+      <FeatureErrorBoundary featureName="Milestones">
+        <MilestonesTable />
+      </FeatureErrorBoundary>
     </div>
   );
 }

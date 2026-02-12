@@ -12,6 +12,7 @@ import { Button } from '@/shared/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/ui/card';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Badge } from '@/shared/components/ui/badge';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 import { useCommunication } from '@/features/communications/ui/hooks/useCommunications';
 import { CommunicationEditDialog } from '@/features/communications/ui/components/CommunicationEditDialog';
@@ -100,7 +101,8 @@ export default function CommunicationDetailPage({ params }: CommunicationDetailP
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <FeatureErrorBoundary featureName="Communication Details">
+        <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Details</CardTitle>
@@ -150,14 +152,15 @@ export default function CommunicationDetailPage({ params }: CommunicationDetailP
             )}
           </CardContent>
         </Card>
-      </div>
+        </div>
 
-      {/* Edit Dialog */}
-      <CommunicationEditDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        communication={communication}
-      />
+        {/* Edit Dialog */}
+        <CommunicationEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          communication={communication}
+        />
+      </FeatureErrorBoundary>
     </div>
   );
 }

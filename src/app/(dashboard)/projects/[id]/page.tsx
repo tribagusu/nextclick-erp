@@ -16,6 +16,7 @@ import { Skeleton } from '@/shared/components/ui/skeleton';
 import { Badge } from '@/shared/components/ui/badge';
 import { Progress } from '@/shared/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/components/ui/tabs';
+import { FeatureErrorBoundary } from '@/shared/components/ErrorBoundary';
 
 import { useProject } from '@/features/projects/ui/hooks/useProjects';
 import { ProjectEditDialog } from '@/features/projects/ui/components/ProjectEditDialog';
@@ -117,8 +118,9 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         )}
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <FeatureErrorBoundary featureName="Project Details">
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="info">Project Info</TabsTrigger>
           <TabsTrigger value="milestones">Milestones</TabsTrigger>
@@ -202,20 +204,21 @@ export default function ProjectDetailPage({ params }: ProjectDetailPageProps) {
         <TabsContent value="milestones" className="mt-6">
           <MilestonesTab projectId={id} canManage={userCanManage} />
         </TabsContent>
-      </Tabs>
+        </Tabs>
 
-      {/* Dialogs */}
-      <ProjectEditDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        project={project}
-      />
+        {/* Dialogs */}
+        <ProjectEditDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          project={project}
+        />
 
-      <TeamMembersDialog
-        open={teamDialogOpen}
-        onOpenChange={setTeamDialogOpen}
-        projectId={id}
-      />
+        <TeamMembersDialog
+          open={teamDialogOpen}
+          onOpenChange={setTeamDialogOpen}
+          projectId={id}
+        />
+      </FeatureErrorBoundary>
     </div>
   );
 }
