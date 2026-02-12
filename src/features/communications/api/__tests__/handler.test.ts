@@ -233,9 +233,9 @@ describe('Communication Handler', () => {
           code: 'VALIDATION_ERROR',
           message: 'Failed to create Communication Log',
           details: {
-            client_id: 'Client is required',
-            date: 'Date is required',
-            mode: 'Invalid option: expected one of "email"|"call"|"meeting"',
+            client_id: 'Please select a client',
+            date: 'Please select a communication date',
+            mode: 'Please select a communication type (email, call, or meeting)',
             summary: 'Summary must be at least 10 characters',
             follow_up_required: 'Invalid input: expected boolean, received number'
           }
@@ -293,9 +293,9 @@ describe('Communication Handler', () => {
           code: 'VALIDATION_ERROR',
           message: 'Failed to update Communication Log',
           details: {
-            client_id: 'Client is required',
-            date: 'Date is required',
-            mode: 'Invalid option: expected one of "email"|"call"|"meeting"',
+            client_id: 'Please select a client',
+            date: 'Please select a communication date',
+            mode: 'Please select a communication type (email, call, or meeting)',
             summary: 'Summary must be at least 10 characters',
             follow_up_required: 'Invalid input: expected boolean, received number'
           }

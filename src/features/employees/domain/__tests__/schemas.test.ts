@@ -36,12 +36,14 @@ describe('Employee Schemas', () => {
       expect(result.success).toBe(false);
     });
 
-    it('should accept empty email', () => {
+    it('should require email', () => {
       const result = employeeFormSchema.safeParse({
         name: 'John Doe',
         email: '',
+        position: 'Developer',
+        department: 'Engineering',
       });
-      expect(result.success).toBe(true);
+      expect(result.success).toBe(false);
     });
 
     it('should validate status options', () => {
@@ -49,6 +51,8 @@ describe('Employee Schemas', () => {
         const result = employeeFormSchema.safeParse({
           name: 'John Doe',
           email: 'john@company.com',
+          position: 'Developer',
+          department: 'Engineering',
           status,
         });
         expect(result.success).toBe(true);
