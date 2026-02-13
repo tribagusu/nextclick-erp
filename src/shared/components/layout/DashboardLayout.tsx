@@ -17,6 +17,8 @@ import {
   BreadcrumbSeparator,
 } from '@/shared/components/ui/breadcrumb';
 import { AppSidebar } from './AppSidebar';
+import { MobileNav } from './MobileNav';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import type { UserRole } from '@/shared/base-feature/domain/database.types';
 
@@ -51,17 +53,21 @@ export function DashboardLayout({
   user,
   onLogout,
 }: DashboardLayoutProps) {
+  const isMobile = useIsMobile();
+
   return (
     <SidebarProvider>
-      <AppSidebar user={user} onLogout={onLogout} />
+      {/* Hide sidebar on mobile */}
+      {!isMobile && <AppSidebar user={user} onLogout={onLogout} />}
       <SidebarInset>
         {/* Header */}
         <header className="flex h-16 shrink-0 items-center gap-2">
           <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
+            {/* Hide sidebar trigger on mobile */}
+            {!isMobile && <SidebarTrigger className="-ml-1" />}
             {breadcrumbs.length > 0 && (
               <>
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                {!isMobile && <Separator orientation="vertical" className="mr-2 h-4" />}
                 <Breadcrumb>
                   <BreadcrumbList>
                     {breadcrumbs.map((crumb, index) => (
@@ -85,9 +91,15 @@ export function DashboardLayout({
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto">
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">{children}</div>
+          {/* Add bottom padding on mobile to account for fixed bottom nav */}
+          <div className={isMobile ? "flex flex-1 flex-col gap-4 p-4 pt-0 pb-20" : "flex flex-1 flex-col gap-4 p-4 pt-0"}>
+            {children}
+          </div>
         </main>
       </SidebarInset>
+      
+      {/* Show mobile nav only on mobile */}
+      {isMobile && <MobileNav user={user} />}
     </SidebarProvider>
   );
 }
